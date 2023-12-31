@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import "@babylonjs/inspector";
 import { Engine, Scene, Color4, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
@@ -29,7 +38,12 @@ class App {
         plane.rotation.x = Math.PI / 2;
         var cube = MeshBuilder.CreateBox('cube', { width: 5, height: 5, depth: 5 }, scene);
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
-        let loadedGUI = advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
+        function createGUI() {
+            return __awaiter(this, void 0, void 0, function* () {
+                let loadedGUI = yield advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
+            });
+        }
+        createGUI();
         window.addEventListener("keydown", (ev) => {
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
                 if (scene.debugLayer.isVisible()) {

@@ -47,9 +47,15 @@ class App {
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI/2;
         var cube: Mesh = MeshBuilder.CreateBox('cube',{width:5,height:5,depth:5}, scene);
-        let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
-        let loadedGUI = advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
+        let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
+        
+        async function createGUI(){
+            let loadedGUI =  await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
+
+        }
+        createGUI()
+        
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
