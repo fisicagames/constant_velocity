@@ -1,13 +1,13 @@
 //import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { Engine, Scene, Color4, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder } from "@babylonjs/core";
-import { AdvancedDynamicTexture, Control, TextBlock } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 
 //https://colorhunt.co/palette/1db9c37027a0c32badf56fad
 //https://gui.babylonjs.com/#HEG7HH#11
 //Mobile simulator - responsive testing tool
 //https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
-
+//see todos in the code
 
 
 class App {
@@ -62,10 +62,11 @@ class App {
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textEquation: TextBlock;
 
+        //todo: move and combine this async function into a bigger scene function 
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
             
-            textEquation = advancedTexture.getControlByName("TextEquation");
+            textEquation = advancedTexture.getControlByName("TextEquation") as TextBlock;
             textEquation.text = "s(t) =  ?  +  ?   * t ";
 
             engine.runRenderLoop(() => {
