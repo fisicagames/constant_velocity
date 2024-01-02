@@ -6,9 +6,14 @@ import { Engine, Scene, Color4, Color3, ArcRotateCamera,
 import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#11
+//GUI: https://gui.babylonjs.com/#HEG7HH#13
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
-//Music: https://pixabay.com/pt/music/pop-positive-way-124550/
+//Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
+//Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
+//DynamicTexture Thousands Cubes: https://forum.babylonjs.com/t/optimizing-scene-with-lots-thousands-of-2d-text-labels-in-3d-space/25666
+//DynamicTexture Plane: https://playground.babylonjs.com/#TMHF80
+
+
 //see todos in the code
 
 
@@ -44,13 +49,13 @@ class App {
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
 
-        const music = new Sound("Music", "public/assets/sounds/positive-way-124550.mp3", scene, null, {
+        const music = new Sound("Music", "public/assets/sounds/first-steps-141242.mp3", scene, null, {
             loop: true,
             autoplay: true,
           });
 
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), scene);
-        camera.attachControl(canvas, false);
+        //camera.attachControl(canvas, false);
         camera.position = new Vector3(-3, 6, -3);
         camera.radius = 54;
 
@@ -65,7 +70,10 @@ class App {
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
 
-        var planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 4, height: 0.2 }, scene);
+        
+
+
+        let planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 4, height: 0.2 }, scene);
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
         planeCentreLine.material = materialPlaneCentreLine;
@@ -79,30 +87,39 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        cube.position.x = -100 + Math.random() * 200;
+        cube.position.x = -20;// + Math.random() * 200;
         camera.target = cube.position;
 
-
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
-        let textEquation: TextBlock;
+        let textBlockEquation: TextBlock;
+
+
+        let planeMileMarkers: Mesh = MeshBuilder.CreatePlane('planeMileMarkers', { width: 4, height: 4 }, scene);
+        const materialplaneMileMarkers = new StandardMaterial("materialplaneMileMarkers", scene);
+        materialplaneMileMarkers.diffuseColor = new Color3(0, 1, 0);
+        planeMileMarkers.material = materialplaneMileMarkers;
+        planeMileMarkers.position = new Vector3(0, 4, 6);
+        //planeMileMarkers.rotation.y = Math.PI ;
+        //planeMileMarkers.rotation.z = Math.PI / 2;
+
 
         //todo: move and combine this async function into a bigger scene function 
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
             
-            textEquation = advancedTexture.getControlByName("TextEquation") as TextBlock;
-            textEquation.text = "s(t) =  ?  +  ?   * t ";
+            textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
+            textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
 
             engine.runRenderLoop(() => {
                 scene.render();
     
                 cube.position.x += 0.2;
                 //camera.position.x = cube.position.x - 3;
-                camera.position = new Vector3(cube.position.x - 4, 3, -3);
+                camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
                 camera.target = cube.position;
     
-                textEquation.text = `${cube.position.x.toFixed(1)} =  ?  +  ?   * t `;
+                textBlockEquation.text = `${cube.position.x.toFixed(1)} =  ?  +  ?   * t `;
     
     
             });
