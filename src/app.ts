@@ -13,7 +13,7 @@ import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
 //DynamicTexture Thousands Cubes: https://forum.babylonjs.com/t/optimizing-scene-with-lots-thousands-of-2d-text-labels-in-3d-space/25666
-//DynamicTexture Plane: https://playground.babylonjs.com/#TMHF80
+//DynamicTexture text to Plane: https://playground.babylonjs.com/#TMHF80
 
 
 //see todos in the code
@@ -75,7 +75,7 @@ class App {
 
 
 
-        let planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 4, height: 0.2 }, scene);
+        let planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 6, height: 0.6 }, scene);
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
         planeCentreLine.material = materialPlaneCentreLine;
@@ -89,7 +89,7 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        cube.position.x = -20;// + Math.random() * 200;
+        cube.position.x = -40;// + Math.random() * 200;
         camera.target = cube.position;
 
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
@@ -115,7 +115,7 @@ class App {
         var ratio = planeHeight / DTHeight;
 
         //Set text
-        var text = "100 m";
+        var text = "1000 m";
 
         //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
         var temp = new DynamicTexture("DynamicTextureTemp", 64, scene);
@@ -143,7 +143,7 @@ class App {
             engine.runRenderLoop(() => {
                 scene.render();
 
-                //cube.position.x += 0.2;
+                cube.position.x += 0.2;
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
