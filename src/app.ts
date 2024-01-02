@@ -1,8 +1,10 @@
 //import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { Engine, Scene, Color4, Color3, ArcRotateCamera, 
-        Vector3, HemisphericLight, Mesh, MeshBuilder,
-        StandardMaterial, Sound } from "@babylonjs/core";
+import {
+    Engine, Scene, Color4, Color3, ArcRotateCamera,
+    Vector3, HemisphericLight, Mesh, MeshBuilder,
+    StandardMaterial, Sound, DynamicTexture
+} from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
@@ -52,17 +54,17 @@ class App {
         const music = new Sound("Music", "public/assets/sounds/first-steps-141242.mp3", scene, null, {
             loop: true,
             autoplay: true,
-          });
+        });
 
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), scene);
         //camera.attachControl(canvas, false);
         camera.position = new Vector3(-3, 6, -3);
         camera.radius = 54;
 
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(0.5, 1, 0), scene);
+        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-3, 1, -0.5), scene);
         //var sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 0.5 }, scene);
-        
-        
+
+
         var plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
         const materialPlane = new StandardMaterial("planoMaterial", scene);
         materialPlane.diffuseColor = new Color3(0.7, 0.7, 0.8);
@@ -70,7 +72,7 @@ class App {
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
 
-        
+
 
 
         let planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 4, height: 0.2 }, scene);
@@ -93,35 +95,63 @@ class App {
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation: TextBlock;
 
+        ///////////
+        let planeMileMarkers: Mesh = MeshBuilder.CreatePlane('planeMileMarkers', { width: 5, height: 4 }, scene);
 
-        let planeMileMarkers: Mesh = MeshBuilder.CreatePlane('planeMileMarkers', { width: 4, height: 4 }, scene);
-        const materialplaneMileMarkers = new StandardMaterial("materialplaneMileMarkers", scene);
-        materialplaneMileMarkers.diffuseColor = new Color3(0, 1, 0);
-        planeMileMarkers.material = materialplaneMileMarkers;
         planeMileMarkers.position = new Vector3(0, 4, 6);
-        //planeMileMarkers.rotation.y = Math.PI ;
-        //planeMileMarkers.rotation.z = Math.PI / 2;
+        planeMileMarkers.rotation.y = Math.PI / 2.5;
+        //Set font
+
+        var font_size = 48;
+        var font = "bold " + font_size + "px Arial";
+
+        //Set height for plane
+        var planeHeight = 4;
+
+        //Set height for dynamic texture
+        var DTHeight = 1.5 * font_size; //or set as wished
+
+        //Calculate ratio
+        var ratio = planeHeight / DTHeight;
+
+        //Set text
+        var text = "100 m";
+
+        //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
+        var temp = new DynamicTexture("DynamicTextureTemp", 64, scene);
+        var tmpctx = temp.getContext();
+        tmpctx.font = font;
+        var DTWidth = tmpctx.measureText(text).width + 8;
+
+        //Calculate width the plane has to be 
+        var planeWidth = DTWidth * ratio;
+
+        var dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
+        var mat = new StandardMaterial("mat", scene);
+        mat.diffuseTexture = dynamicTexture;
+        dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
+        planeMileMarkers.material = mat;
 
 
         //todo: move and combine this async function into a bigger scene function 
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
-            
+
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
 
             engine.runRenderLoop(() => {
                 scene.render();
-    
-                cube.position.x += 0.2;
+
+                //cube.position.x += 0.2;
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
                 camera.target = cube.position;
-    
+
                 textBlockEquation.text = `${cube.position.x.toFixed(1)} =  ?  +  ?   * t `;
-    
-    
+
+
             });
 
         }
@@ -141,7 +171,7 @@ class App {
         });
 
         // run the main render loop
-       
+
 
         // Resize
         window.addEventListener("resize", function () {
