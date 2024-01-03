@@ -83,7 +83,7 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 0.2;
+        let xVelocity: number = 0.3;
 
         cube.position.x = -40;// + Math.random() * 200;
         camera.target = cube.position;
@@ -98,15 +98,15 @@ class App {
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
         
         class PlaneCentreLine {
-            planeCentreLine: Mesh;
+            mesh: Mesh;
             x: number;
 
             constructor(x: number) {
-                this.planeCentreLine = MeshBuilder.CreatePlane(`planeCentreLine ${x}`, { width: 8, height: 0.5 }, scene);
+                this.mesh = MeshBuilder.CreatePlane(`planeCentreLine ${x}`, { width: 8, height: 0.5 }, scene);
              
-                this.planeCentreLine.material = materialPlaneCentreLine;
-                this.planeCentreLine.position = new Vector3(x, 0.1, 0);
-                this.planeCentreLine.rotation.x = Math.PI / 2;
+                this.mesh.material = materialPlaneCentreLine;
+                this.mesh.position = new Vector3(x, 0.1, 0);
+                this.mesh.rotation.x = Math.PI / 2;
 
             }
         }
@@ -118,7 +118,11 @@ class App {
         class PlaneMileMarker {
 
             mesh: Mesh;
+            tempDynamicTexture: DynamicTexture;
+            dynamicTexture: DynamicTexture;
+            mat: StandardMaterial;
             xPosition: number;
+
 
             constructor(xPosition = 0) {
                 this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
@@ -139,30 +143,45 @@ class App {
                 let text: string = `${xPosition} m`;
 
                 //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
-                let temp: DynamicTexture = new DynamicTexture("DynamicTextureTemp", 64, scene);
-                let tmpctx = temp.getContext();
-                tmpctx.font = font;
-                let DTWidth = tmpctx.measureText(text).width + 8;
+                this.tempDynamicTexture = new DynamicTexture(`DynamicTextureTemp${xPosition}`, 64, scene);
+                let tempCtx = this.tempDynamicTexture.getContext();
+                tempCtx.font = font;
+                let DTWidth = tempCtx.measureText(text).width + 8;
 
                 //Calculate width the plane has to be 
                 let planeWidth = DTWidth * ratio;
 
-                let dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
-                let mat = new StandardMaterial("mat", scene);
-                mat.diffuseTexture = dynamicTexture;
-                dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
-                this.mesh.material = mat;
+                this.dynamicTexture = new DynamicTexture(`DynamicTexture${xPosition}`, { width: DTWidth, height: DTHeight }, scene, false);
+                this.mat = new StandardMaterial(`mat${xPosition}`, scene);
+                this.mat.diffuseTexture = this.dynamicTexture;
+                this.dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
+                this.mesh.material = this.mat;
+                
+            }
+
+            dispose(){
+                this.mesh.dispose();
+                this.tempDynamicTexture.dispose();
+                this.dynamicTexture.dispose();
+                this.mat.dispose();
+
             }
         }
         ////////////////////////////////
 
-
-        for (let i = -100; i < 100; i += 10) {
+        let lastCentreLinePosition, lastMileMarkerPosition: number = 0;
+        
+        for (let i = -50; i < 50; i += 10) {
             let planeMileMarker = new PlaneMileMarker(i);
             planeMileMarkers.push(planeMileMarker);
+            lastMileMarkerPosition = i;
 
+            
             let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i*2);
             planeCentreLines.push(planeCentreLine);
+            lastCentreLinePosition = i *2;
+
+
             
         }
 
@@ -180,7 +199,7 @@ class App {
             engine.runRenderLoop(() => {
                 scene.render();
 
-                cube.position.x += 0.1;
+                cube.position.x += xVelocity;
                 plane.position.x = cube.position.x
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
@@ -191,11 +210,12 @@ class App {
                 //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
                 if( xVelocity > 0 ){
                     for(let i in planeMileMarkers){
-                        if(cube.position.x - 100   > planeMileMarkers[i].mesh.position.x ){
-                            planeMileMarkers[i].mesh.position.x += 200;   
-                            //mat.diffuseTexture = dynamicTexture;
-                           // dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
-//                            //planeMileMarkers[i].mesh.material. 
+                        if(cube.position.x - 50   > planeMileMarkers[i].mesh.position.x ){
+                            planeMileMarkers[i].dispose();  
+                            planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
+                            lastMileMarkerPosition += 10;
+                            //planeCentreLines[i].mesh.position.x += 50;
+   
                         }
                     }
                 }
