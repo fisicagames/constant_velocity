@@ -61,11 +61,11 @@ class App {
         camera.position = new Vector3(-3, 6, -3);
         camera.radius = 54;
 
-        let  light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-3, 1, -0.5), scene);
+        let light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-3, 1, -0.5), scene);
         //let  sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 0.5 }, scene);
 
 
-        let  plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
+        let plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
         const materialPlane = new StandardMaterial("planoMaterial", scene);
         materialPlane.diffuseColor = new Color3(0.7, 0.7, 0.8);
         plane.material = materialPlane;
@@ -74,20 +74,16 @@ class App {
 
 
 
-
-        let planeCentreLine: Mesh = MeshBuilder.CreatePlane('planeCentreLine', { width: 6, height: 0.6 }, scene);
-        const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
-        materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
-        planeCentreLine.material = materialPlaneCentreLine;
-        planeCentreLine.position = new Vector3(0, 0.1, 0);
-        planeCentreLine.rotation.x = Math.PI / 2;
+        ////////////////////////////////
 
 
-        let  cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
+        let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
+
+        let xVelocity: number = 0.2;
 
         cube.position.x = -40;// + Math.random() * 200;
         camera.target = cube.position;
@@ -95,57 +91,84 @@ class App {
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation: TextBlock;
 
-        ///////////
+        ////////////////////////////////
 
-        let planeMileMarkers = [];
+        const planeCentreLines: PlaneCentreLine[] = [];
+        const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
+        materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
+        
+        class PlaneCentreLine {
+            planeCentreLine: Mesh;
+            x: number;
 
+            constructor(x: number) {
+                this.planeCentreLine = MeshBuilder.CreatePlane(`planeCentreLine ${x}`, { width: 8, height: 0.5 }, scene);
+             
+                this.planeCentreLine.material = materialPlaneCentreLine;
+                this.planeCentreLine.position = new Vector3(x, 0.1, 0);
+                this.planeCentreLine.rotation.x = Math.PI / 2;
 
-        class planeMileMarker {
+            }
+        }
+
+        ////////////////////////////////
+
+        const planeMileMarkers: PlaneMileMarker[] = [];
+
+        class PlaneMileMarker {
 
             mesh: Mesh;
             xPosition: number;
 
-            constructor(xPosition = 0){
-                this.mesh = MeshBuilder.CreatePlane('planeMileMarker', { width: 5, height: 3 }, scene);
-                this.mesh.position = new Vector3(xPosition*2, 4, 6);
+            constructor(xPosition = 0) {
+                this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
+                this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                 this.mesh.rotation.y = Math.PI / 2.5;
 
-                const font_size = 48;
-                const font = "normal " + font_size + "px Arial";
-                let  planeHeight = 4;
+                const font_size: number = 48;
+                const font: string = "normal " + font_size + "px Arial";
+                const planeHeight: number = 4;
 
                 //Set height for dynamic texture
-                let  DTHeight = 1.5 * font_size; //or set as wished
-        
+                const DTHeight: number = 1.5 * font_size; //or set as wished
+
                 //Calculate ratio
-                let  ratio = planeHeight / DTHeight;
-        
+                const ratio: number = planeHeight / DTHeight;
+
                 //Set text
-                let  text = `${xPosition} m`;
-        
+                let text: string = `${xPosition} m`;
+
                 //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
-                let  temp = new DynamicTexture("DynamicTextureTemp", 64, scene);
-                let  tmpctx = temp.getContext();
+                let temp: DynamicTexture = new DynamicTexture("DynamicTextureTemp", 64, scene);
+                let tmpctx = temp.getContext();
                 tmpctx.font = font;
-                let  DTWidth = tmpctx.measureText(text).width + 8;
-        
+                let DTWidth = tmpctx.measureText(text).width + 8;
+
                 //Calculate width the plane has to be 
-                let  planeWidth = DTWidth * ratio;
-        
-                let  dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
-                let  mat = new StandardMaterial("mat", scene);
+                let planeWidth = DTWidth * ratio;
+
+                let dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
+                let mat = new StandardMaterial("mat", scene);
                 mat.diffuseTexture = dynamicTexture;
                 dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
                 this.mesh.material = mat;
             }
         }
+        ////////////////////////////////
 
-        for (let i = -200; i < 200; i += 10){
-            let mileMaker = new planeMileMarker(i);
-            planeMileMarkers.push(mileMaker);
+
+        for (let i = -100; i < 100; i += 10) {
+            let planeMileMarker = new PlaneMileMarker(i);
+            planeMileMarkers.push(planeMileMarker);
+
+            let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i*2);
+            planeCentreLines.push(planeCentreLine);
+            
         }
-        
-        
+
+        ////////////////////////////////
+
+
 
         //todo: move and combine this async function into a bigger scene function 
         async function createGUI() {
@@ -158,14 +181,24 @@ class App {
                 scene.render();
 
                 cube.position.x += 0.1;
-                plane.position.x = cube.position.x 
+                plane.position.x = cube.position.x
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
                 camera.target = cube.position;
 
-                textBlockEquation.text = `${cube.position.x.toFixed(1)} =  ?  +  ?   * t `;
-
+                textBlockEquation.text = (cube.position.x/2 ).toFixed(1).toString() +" =  ?  +  ?   * t ";
+                //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
+                if( xVelocity > 0 ){
+                    for(let i in planeMileMarkers){
+                        if(cube.position.x - 100   > planeMileMarkers[i].mesh.position.x ){
+                            planeMileMarkers[i].mesh.position.x += 200;   
+                            //mat.diffuseTexture = dynamicTexture;
+                           // dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
+//                            //planeMileMarkers[i].mesh.material. 
+                        }
+                    }
+                }
 
             });
 
