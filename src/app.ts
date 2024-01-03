@@ -61,11 +61,11 @@ class App {
         camera.position = new Vector3(-3, 6, -3);
         camera.radius = 54;
 
-        var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-3, 1, -0.5), scene);
-        //var sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 0.5 }, scene);
+        let  light1: HemisphericLight = new HemisphericLight("light1", new Vector3(-3, 1, -0.5), scene);
+        //let  sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 0.5 }, scene);
 
 
-        var plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
+        let  plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
         const materialPlane = new StandardMaterial("planoMaterial", scene);
         materialPlane.diffuseColor = new Color3(0.7, 0.7, 0.8);
         plane.material = materialPlane;
@@ -83,7 +83,7 @@ class App {
         planeCentreLine.rotation.x = Math.PI / 2;
 
 
-        var cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
+        let  cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
         cube.material = materialCube;
@@ -96,42 +96,52 @@ class App {
         let textBlockEquation: TextBlock;
 
         ///////////
-        let planeMileMarkers: Mesh = MeshBuilder.CreatePlane('planeMileMarkers', { width: 5, height: 4 }, scene);
 
-        planeMileMarkers.position = new Vector3(0, 4, 6);
-        planeMileMarkers.rotation.y = Math.PI / 2.5;
-        //Set font
+        let planeMileMarkers = [];
 
-        var font_size = 48;
-        var font = "bold " + font_size + "px Arial";
 
-        //Set height for plane
-        var planeHeight = 4;
+        class planeMileMarker {
 
-        //Set height for dynamic texture
-        var DTHeight = 1.5 * font_size; //or set as wished
+            mesh: Mesh;
 
-        //Calculate ratio
-        var ratio = planeHeight / DTHeight;
+            constructor(){
+                this.mesh = MeshBuilder.CreatePlane('planeMileMarker', { width: 5, height: 4 }, scene);;
+                this.mesh.position = new Vector3(0, 4, 6);
+                this.mesh.rotation.y = Math.PI / 2.5;
 
-        //Set text
-        var text = "1000 m";
+                const font_size = 48;
+                const font = "bold " + font_size + "px Arial";
+                let  planeHeight = 4;
 
-        //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
-        var temp = new DynamicTexture("DynamicTextureTemp", 64, scene);
-        var tmpctx = temp.getContext();
-        tmpctx.font = font;
-        var DTWidth = tmpctx.measureText(text).width + 8;
+                //Set height for dynamic texture
+                let  DTHeight = 1.5 * font_size; //or set as wished
+        
+                //Calculate ratio
+                let  ratio = planeHeight / DTHeight;
+        
+                //Set text
+                let  text = "10 m";
+        
+                //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
+                let  temp = new DynamicTexture("DynamicTextureTemp", 64, scene);
+                let  tmpctx = temp.getContext();
+                tmpctx.font = font;
+                let  DTWidth = tmpctx.measureText(text).width + 8;
+        
+                //Calculate width the plane has to be 
+                let  planeWidth = DTWidth * ratio;
+        
+                let  dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
+                let  mat = new StandardMaterial("mat", scene);
+                mat.diffuseTexture = dynamicTexture;
+                dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
+                this.mesh.material = mat;
+            }
+        }
 
-        //Calculate width the plane has to be 
-        var planeWidth = DTWidth * ratio;
+        let mileMaker = new planeMileMarker();
 
-        var dynamicTexture = new DynamicTexture("DynamicTexture", { width: DTWidth, height: DTHeight }, scene, false);
-        var mat = new StandardMaterial("mat", scene);
-        mat.diffuseTexture = dynamicTexture;
-        dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
-        planeMileMarkers.material = mat;
-
+        planeMileMarkers.push(mileMaker);
 
         //todo: move and combine this async function into a bigger scene function 
         async function createGUI() {
