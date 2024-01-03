@@ -1,5 +1,15 @@
+//2024 (C) Rafael João Ribeiro - IFPR - http://www.fisicagames.com.br
+//see todos in the code and:  
+//1. Add ./ in index.htmll
+//2. remove import inspector and debugLayer before build
+//3. change equation.png path to ./assets/gui/equation.png
+
+
+
 //import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
+
+//import "@babylonjs/inspector";
+
 import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
     Vector3, HemisphericLight, Mesh, MeshBuilder,
@@ -8,7 +18,7 @@ import {
 import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#14
+//GUI: https://gui.babylonjs.com/#HEG7HH#17
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
@@ -16,7 +26,7 @@ import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
 //DynamicTexture text to Plane: https://playground.babylonjs.com/#TMHF80
 
 
-//see todos in the code
+
 
 
 class App {
@@ -51,7 +61,7 @@ class App {
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
 
-        const music = new Sound("Music", "public/assets/sounds/first-steps-141242.mp3", scene, null, {
+        const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, null, {
             loop: true,
             autoplay: true,
         });
@@ -83,9 +93,9 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 0.3;
+        let xVelocity: number = 1;
 
-        cube.position.x = -40;// + Math.random() * 200;
+        cube.position.x = 0;// + Math.random() * 200;
         camera.target = cube.position;
 
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
@@ -96,14 +106,14 @@ class App {
         const planeCentreLines: PlaneCentreLine[] = [];
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
-        
+
         class PlaneCentreLine {
             mesh: Mesh;
             x: number;
 
             constructor(x: number) {
                 this.mesh = MeshBuilder.CreatePlane(`planeCentreLine ${x}`, { width: 8, height: 0.5 }, scene);
-             
+
                 this.mesh.material = materialPlaneCentreLine;
                 this.mesh.position = new Vector3(x, 0.1, 0);
                 this.mesh.rotation.x = Math.PI / 2;
@@ -156,10 +166,10 @@ class App {
                 this.mat.diffuseTexture = this.dynamicTexture;
                 this.dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
                 this.mesh.material = this.mat;
-                
+
             }
 
-            dispose(){
+            dispose() {
                 this.mesh.dispose();
                 this.tempDynamicTexture.dispose();
                 this.dynamicTexture.dispose();
@@ -169,20 +179,20 @@ class App {
         }
         ////////////////////////////////
 
-        let lastCentreLinePosition, lastMileMarkerPosition: number = 0;
-        
-        for (let i = -50; i < 50; i += 10) {
+        let lastMileMarkerPosition: number = 0;
+
+        for (let i = -200; i < 200; i += 10) {
             let planeMileMarker = new PlaneMileMarker(i);
             planeMileMarkers.push(planeMileMarker);
             lastMileMarkerPosition = i;
 
-            
-            let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i*2);
+
+            let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
             planeCentreLines.push(planeCentreLine);
-            lastCentreLinePosition = i *2;
+            //lastCentreLinePosition = i *2;
 
 
-            
+
         }
 
         ////////////////////////////////
@@ -190,32 +200,40 @@ class App {
 
 
         //todo: move and combine this async function into a bigger scene function 
+        
+
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
 
+            let time: number = 0;
+
             engine.runRenderLoop(() => {
                 scene.render();
-
-                cube.position.x += xVelocity;
+                time += engine.getDeltaTime() / 1000;
+                cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
                 plane.position.x = cube.position.x
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
                 camera.target = cube.position;
 
-                textBlockEquation.text = (cube.position.x/2 ).toFixed(1).toString() +" =  ?  +  ?   * t ";
+                textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1)+"  (S.I.)" ;
                 //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
-                if( xVelocity > 0 ){
-                    for(let i in planeMileMarkers){
-                        if(cube.position.x - 50   > planeMileMarkers[i].mesh.position.x ){
-                            planeMileMarkers[i].dispose();  
+                if (xVelocity > 0) {
+                    for (let i in planeMileMarkers) {
+                        if (cube.position.x - 100 > planeMileMarkers[i].mesh.position.x) {
+                            planeMileMarkers[i].dispose();
                             planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
+
+                            planeCentreLines[i].mesh.position.x = lastMileMarkerPosition * 2;
+
                             lastMileMarkerPosition += 10;
+
                             //planeCentreLines[i].mesh.position.x += 50;
-   
+
                         }
                     }
                 }
