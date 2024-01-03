@@ -158,7 +158,7 @@ class App {
                 scene.render();
 
                 cube.position.x += 0.1;
-                plane.position.x = cube.position.x; 
+                plane.position.x = cube.position.x 
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
