@@ -15,7 +15,7 @@ import {
     Vector3, HemisphericLight, Mesh, MeshBuilder,
     StandardMaterial, Sound, DynamicTexture
 } from "@babylonjs/core";
-import { AdvancedDynamicTexture, TextBlock } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, TextBlock, Button } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
 //GUI: https://gui.babylonjs.com/#HEG7HH#17
@@ -66,8 +66,9 @@ class App {
 
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, null, {
             loop: true,
-            autoplay: false,
+            autoplay: true,
         });
+
 
         document.addEventListener("visibilitychange", event => {
             //https://forum.babylonjs.com/t/pointer-over-action-vs-lost-focus/18836/3
@@ -108,13 +109,18 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 1;
+        let xVelocity: number = 10;
+        let x0Position: number = 0;
 
-        cube.position.x = 0;// + Math.random() * 200;
+        x0Position = Math.round(-20 + Math.random() * 40)*20;
+        cube.position.x = x0Position;
+        console.log(cube.position.x)
         camera.target = cube.position;
 
         let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation: TextBlock;
+        let textBlockTimeTotal: TextBlock;
+        let buttonReplay: Button;
 
         ////////////////////////////////
 
@@ -196,7 +202,7 @@ class App {
 
         let lastMileMarkerPosition: number = 0;
 
-        for (let i = -200; i < 200; i += 10) {
+        for (let i = x0Position-200 ; i < x0Position+200; i += 10) {
             let planeMileMarker = new PlaneMileMarker(i);
             planeMileMarkers.push(planeMileMarker);
             lastMileMarkerPosition = i;
@@ -223,13 +229,40 @@ class App {
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
 
+            textBlockTimeTotal = advancedTexture.getControlByName("TextBlockTimeTotal") as TextBlock;
+
+
+            buttonReplay = advancedTexture.getControlByName("ButtonReplay") as Button;
+
+            
+
             let time: number = 0;
 
+            let timeEnd: number = 30;
+
+
+
+
+
             engine.runRenderLoop(() => {
+
                 scene.render();
-                time += engine.getDeltaTime() / 1000;
-                cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
-                plane.position.x = cube.position.x
+
+                if(timeEnd > 0.5){
+                    timeEnd -= engine.getDeltaTime() / 1000;
+                    textBlockTimeTotal.text = "Time to end: "+ timeEnd.toFixed(0) +" s";
+                    cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
+                    time += engine.getDeltaTime() / 1000;
+
+                } 
+                else{
+                    music.pause();
+                }
+                
+                
+
+                
+                plane.position.x = cube.position.x 
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
