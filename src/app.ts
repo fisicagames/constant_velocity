@@ -257,6 +257,8 @@ class App {
             buttonB = advancedTexture.getControlByName("ButtonB") as Button;
             buttonC = advancedTexture.getControlByName("ButtonC") as Button;
 
+            const buttons: Button[] = [buttonA, buttonB, buttonC];
+
             function shuffleAnswers() {
 
                 const order: number = Math.ceil(Math.random() * 3);
@@ -282,6 +284,32 @@ class App {
                 }
             }
             shuffleAnswers();
+            console.log(buttonA.textBlock.text , (x0/2 ).toFixed(0).toString());
+
+            buttonA.onPointerClickObservable.add(function () {
+                checkAnswers()
+            })
+            buttonB.onPointerClickObservable.add(function () {
+                checkAnswers()
+            })
+            buttonC.onPointerClickObservable.add(function () {
+                checkAnswers()
+            })
+
+            function checkAnswers(){
+                for (let i in buttons) {
+                    if(buttons[i].textBlock.text == (x0/2 ).toFixed(0).toString()){
+                        buttons[i].background = "#27b376";
+                        
+                    }
+                    else{
+                        buttons[i].background = "#bf212f";
+                    }
+
+                }
+            }
+
+
 
             buttonReplay = advancedTexture.getControlByName("ButtonReplay") as Button;
             buttonReplay.onPointerUpObservable.add(function () {
