@@ -13,7 +13,7 @@ import "@babylonjs/inspector";
 import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
     Vector3, HemisphericLight, Mesh, MeshBuilder,
-    StandardMaterial, Sound, DynamicTexture
+    StandardMaterial, Sound, DynamicTexture, TransformNode
 } from "@babylonjs/core";
 import { AdvancedDynamicTexture, TextBlock, Button } from "@babylonjs/gui";
 
@@ -128,6 +128,9 @@ class App {
 
         ////////////////////////////////
 
+        const planeCentreNode = new TransformNode("planeCentreNode");
+
+
         const planeCentreLines: PlaneCentreLine[] = [];
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
@@ -143,6 +146,8 @@ class App {
                 this.mesh.position = new Vector3(x, 0.1, 0);
                 this.mesh.rotation.x = Math.PI / 2;
 
+                this.mesh.parent = planeCentreNode;
+
             }
 
             dispose(){
@@ -151,6 +156,9 @@ class App {
         }
 
         ////////////////////////////////
+
+        const planeMileMarkerNode = new TransformNode("planeMileMarkerNode");
+
 
         const planeMileMarkers: PlaneMileMarker[] = [];
 
@@ -167,6 +175,8 @@ class App {
                 this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
                 this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                 this.mesh.rotation.y = Math.PI / 2.5;
+
+                this.mesh.parent = planeMileMarkerNode;
 
                 const font_size: number = 48;
                 const font: string = "normal " + font_size + "px Arial";
@@ -234,6 +244,8 @@ class App {
                 planeMileMarkers[i].dispose();
                 planeCentreLines[i].dispose();
             }
+            planeMileMarkers.length = 0;
+            planeCentreLines.length = 0;
             createMilesLines();
             
         }
@@ -263,13 +275,18 @@ class App {
 
             buttonReplay.onPointerUpObservable.add(function (){
                 cube.position.x = x0Position;
+
+                console.log(planeMileMarkers.length,planeCentreLines.length);
                 updateMilesLinesPosition();
+
+
+                
                 time = 0;
             });
 
             let time: number = 0;
 
-            let timeEnd: number = 30;
+            let timeEnd: number = 60;
 
 
 
