@@ -27,6 +27,22 @@ import { AdvancedDynamicTexture, TextBlock, Button } from "@babylonjs/gui";
 
 class App {
     constructor() {
+        
+        let score: number = 0;
+        let bestScore: number = 0;
+        let gameOver: boolean = false;
+        
+        enum GameState {
+            Start,
+            PositionQuestion,
+            CorrectPositionAnswer,
+            IncorrectPositionAnswer,
+            VelocityQuestion,
+            CorrectVelocityQuestion,
+            IncorrectVelocityQuestion,
+            GameOver
+        }
+
         // create the canvas html element and attach it to the webpage
         const canvas = document.createElement("canvas");
 
@@ -107,14 +123,17 @@ class App {
 
         x0 = (-20 + Math.random() * 40);
         x0Position = Math.round(x0) * 20;
-        x0 = x0 *20;
-        console.log(x0, x0Position);
+        x0 = x0 * 20;
         cube.position.x = x0;
+
         camera.target = cube.position;
 
         const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation: TextBlock;
         let textBlockTimeTotal: TextBlock;
+        let textBlockScore: TextBlock;
+        let textBlockBestScore: TextBlock;
+
         let buttonReplay: Button;
         let buttonA: Button;
         let buttonB: Button;
@@ -252,7 +271,12 @@ class App {
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
             textBlockTimeTotal = advancedTexture.getControlByName("TextBlockTimeTotal") as TextBlock;
+            textBlockScore = advancedTexture.getControlByName("TextblockScore") as TextBlock;
+            textBlockScore.text = `Score: ${score}`;
+            textBlockBestScore = advancedTexture.getControlByName("TextblockBestScore") as TextBlock;
+            textBlockBestScore.text = `Best Score: ${bestScore}`;
 
+            let buttonIsCorrect: boolean[] = [false, false, false];
             buttonA = advancedTexture.getControlByName("ButtonA") as Button;
             buttonB = advancedTexture.getControlByName("ButtonB") as Button;
             buttonC = advancedTexture.getControlByName("ButtonC") as Button;
@@ -265,48 +289,58 @@ class App {
 
                 switch (order) {
                     case 1:
-                        buttonA.textBlock.text = (x0/2 ).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0/2  + 30).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0/2 + 60).toFixed(0).toString();
+                        buttonA.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2 + 60).toFixed(0).toString();
                         break;
                     case 2:
-                        buttonA.textBlock.text = (x0/2  - 30).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0/2 ).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0/2  + 30).toFixed(0).toString();
+                        buttonA.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
                         break;
                     case 3:
-                        buttonA.textBlock.text = (x0/2  - 60).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0/2  - 30).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0/2 ).toFixed(0).toString();
+                        buttonA.textBlock.text = (x0 / 2 - 60).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2).toFixed(0).toString();
                         break;
                     default:
                         break;
                 }
             }
             shuffleAnswers();
-            console.log(buttonA.textBlock.text , (x0/2 ).toFixed(0).toString());
+            console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
 
             buttonA.onPointerClickObservable.add(function () {
-                checkAnswers()
+                checkAnswers(0)
             })
             buttonB.onPointerClickObservable.add(function () {
-                checkAnswers()
+                checkAnswers(1)
             })
             buttonC.onPointerClickObservable.add(function () {
-                checkAnswers()
+                checkAnswers(2)
             })
 
-            function checkAnswers(){
+            function checkAnswers(b: number) {
                 for (let i in buttons) {
-                    if(buttons[i].textBlock.text == (x0/2 ).toFixed(0).toString()){
+                    if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
                         buttons[i].background = "#27b376";
-                        
+                        buttonIsCorrect[i] = true;
                     }
-                    else{
+                    else {
                         buttons[i].background = "#bf212f";
+                        buttonIsCorrect[i] = false;
                     }
 
                 }
+                if (buttonIsCorrect[b] == true) {
+                    score += 1;
+                    textBlockScore.text = `Score: ${score}`;
+                    if(score > bestScore) {
+                        bestScore = score;
+                        textBlockBestScore.text = `Best Score: ${bestScore}`;
+                    }
+                }
+                
             }
 
 
