@@ -64,10 +64,14 @@ class App {
 
         ////////////////////////////////
 
-        const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, null, {
+        const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
-            autoplay: true,
+            autoplay: false,
         });
+
+        function soundReady(){
+            if(document.visibilityState == "visible") music.play();
+        }
 
 
         document.addEventListener("visibilitychange", event => {
@@ -140,6 +144,10 @@ class App {
                 this.mesh.rotation.x = Math.PI / 2;
 
             }
+
+            dispose(){
+                this.mesh.dispose();
+            }
         }
 
         ////////////////////////////////
@@ -201,20 +209,39 @@ class App {
         ////////////////////////////////
 
         let lastMileMarkerPosition: number = 0;
-
-        for (let i = x0Position-200 ; i < x0Position+200; i += 10) {
-            let planeMileMarker = new PlaneMileMarker(i);
-            planeMileMarkers.push(planeMileMarker);
-            lastMileMarkerPosition = i;
-
-
-            let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
-            planeCentreLines.push(planeCentreLine);
-            //lastCentreLinePosition = i *2;
-
-
-
+    
+        const createMilesLines = function(){
+            for (let i = x0Position-200 ; i < x0Position+200; i += 10) {
+                let planeMileMarker = new PlaneMileMarker(i);
+                planeMileMarkers.push(planeMileMarker);
+                lastMileMarkerPosition = i;
+    
+    
+                let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
+                planeCentreLines.push(planeCentreLine);
+                //lastCentreLinePosition = i *2;
+            }
+           
         }
+
+        createMilesLines();
+
+        function updateMilesLinesPosition(){
+            
+            
+            for (let i in planeMileMarkers) {
+                
+                planeMileMarkers[i].dispose();
+                planeCentreLines[i].dispose();
+            }
+            createMilesLines();
+            
+        }
+        
+
+        
+
+    
 
         ////////////////////////////////
 
@@ -234,7 +261,11 @@ class App {
 
             buttonReplay = advancedTexture.getControlByName("ButtonReplay") as Button;
 
-            
+            buttonReplay.onPointerUpObservable.add(function (){
+                cube.position.x = x0Position;
+                updateMilesLinesPosition();
+                time = 0;
+            });
 
             let time: number = 0;
 
@@ -272,7 +303,7 @@ class App {
                 //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
                 if (xVelocity > 0) {
                     for (let i in planeMileMarkers) {
-                        if (cube.position.x - 100 > planeMileMarkers[i].mesh.position.x) {
+                        if (cube.position.x - 200 > planeMileMarkers[i].mesh.position.x) {
                             planeMileMarkers[i].dispose();
                             planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
 
