@@ -102,11 +102,14 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 1;
-        let x0Position: number = 0;
+        let xVelocity: number = 5;
+        let x0Position, x0: number = 0;
 
-        x0Position = Math.round(-20 + Math.random() * 40) * 20;
-        cube.position.x = x0Position;
+        x0 = (-20 + Math.random() * 40);
+        x0Position = Math.round(x0) * 20;
+        x0 = x0 *20;
+        console.log(x0, x0Position);
+        cube.position.x = x0;
         camera.target = cube.position;
 
         const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
@@ -116,7 +119,7 @@ class App {
         let buttonA: Button;
         let buttonB: Button;
         let buttonC: Button;
-        
+
 
         ////////////////////////////////
 
@@ -250,21 +253,39 @@ class App {
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
             textBlockTimeTotal = advancedTexture.getControlByName("TextBlockTimeTotal") as TextBlock;
 
-            buttonA =  advancedTexture.getControlByName("ButtonA") as Button;
-            buttonB =  advancedTexture.getControlByName("ButtonB") as Button;
-            buttonC =  advancedTexture.getControlByName("ButtonC") as Button;
+            buttonA = advancedTexture.getControlByName("ButtonA") as Button;
+            buttonB = advancedTexture.getControlByName("ButtonB") as Button;
+            buttonC = advancedTexture.getControlByName("ButtonC") as Button;
 
-            function shuffleAnswers(){
-                buttonA.textBlock.text = (x0Position/2).toString();
-                buttonB.textBlock.text = (x0Position/2+30).toString();
-                buttonC.textBlock.text = (x0Position/2-30).toString();
+            function shuffleAnswers() {
 
+                const order: number = Math.ceil(Math.random() * 3);
+
+                switch (order) {
+                    case 1:
+                        buttonA.textBlock.text = (x0/2 ).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0/2  + 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0/2 + 60).toFixed(0).toString();
+                        break;
+                    case 2:
+                        buttonA.textBlock.text = (x0/2  - 30).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0/2 ).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0/2  + 30).toFixed(0).toString();
+                        break;
+                    case 3:
+                        buttonA.textBlock.text = (x0/2  - 60).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0/2  - 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0/2 ).toFixed(0).toString();
+                        break;
+                    default:
+                        break;
+                }
             }
             shuffleAnswers();
 
             buttonReplay = advancedTexture.getControlByName("ButtonReplay") as Button;
             buttonReplay.onPointerUpObservable.add(function () {
-                cube.position.x = x0Position;
+                cube.position.x = x0;
 
                 console.log(planeMileMarkers.length, planeCentreLines.length);
                 updateMilesLinesPosition();
