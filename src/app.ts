@@ -1,9 +1,8 @@
 //2024 (C) Rafael João Ribeiro - IFPR - http://www.fisicagames.com.br
 //see todos in the code and:  
-//1. Add ./ in index.htmll
+//1. Add ./ in index.html
 //2. remove import inspector and debugLayer before build
 //3. change equation.png path to ./assets/gui/equation.png
-
 
 
 //import "@babylonjs/core/Debug/debugLayer";
@@ -24,9 +23,6 @@ import { AdvancedDynamicTexture, TextBlock, Button } from "@babylonjs/gui";
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
 //DynamicTexture Thousands Cubes: https://forum.babylonjs.com/t/optimizing-scene-with-lots-thousands-of-2d-text-labels-in-3d-space/25666
 //DynamicTexture text to Plane: https://playground.babylonjs.com/#TMHF80
-
-
-
 
 
 class App {
@@ -50,8 +46,6 @@ class App {
         }
         adjustCanvas();
 
-
-
         console.log(canvas.style.width, canvas.style.height);
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
@@ -61,7 +55,6 @@ class App {
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
 
-
         ////////////////////////////////
 
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
@@ -69,12 +62,11 @@ class App {
             autoplay: false,
         });
 
-        function soundReady(){
-            if(document.visibilityState == "visible") music.play();
+        function soundReady() {
+            if (document.visibilityState == "visible") music.play();
         }
 
-
-        document.addEventListener("visibilitychange", event => {
+        document.addEventListener("visibilitychange", () => {
             //https://forum.babylonjs.com/t/pointer-over-action-vs-lost-focus/18836/3
             if (document.visibilityState == "visible") {
                 console.log("tab is active")
@@ -102,10 +94,7 @@ class App {
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
 
-
-
         ////////////////////////////////
-
 
         let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         const materialCube = new StandardMaterial("cubeMaterial", scene);
@@ -113,23 +102,25 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 10;
+        let xVelocity: number = 1;
         let x0Position: number = 0;
 
-        x0Position = Math.round(-20 + Math.random() * 40)*20;
+        x0Position = Math.round(-20 + Math.random() * 40) * 20;
         cube.position.x = x0Position;
-        console.log(cube.position.x)
         camera.target = cube.position;
 
-        let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
+        const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation: TextBlock;
         let textBlockTimeTotal: TextBlock;
         let buttonReplay: Button;
+        let buttonA: Button;
+        let buttonB: Button;
+        let buttonC: Button;
+        
 
         ////////////////////////////////
 
         const planeCentreNode = new TransformNode("planeCentreNode");
-
 
         const planeCentreLines: PlaneCentreLine[] = [];
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
@@ -150,7 +141,7 @@ class App {
 
             }
 
-            dispose(){
+            dispose() {
                 this.mesh.dispose();
             }
         }
@@ -158,7 +149,6 @@ class App {
         ////////////////////////////////
 
         const planeMileMarkerNode = new TransformNode("planeMileMarkerNode");
-
 
         const planeMileMarkers: PlaneMileMarker[] = [];
 
@@ -169,7 +159,6 @@ class App {
             dynamicTexture: DynamicTexture;
             mat: StandardMaterial;
             xPosition: number;
-
 
             constructor(xPosition = 0) {
                 this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
@@ -219,98 +208,89 @@ class App {
         ////////////////////////////////
 
         let lastMileMarkerPosition: number = 0;
-    
-        const createMilesLines = function(){
-            for (let i = x0Position-200 ; i < x0Position+200; i += 10) {
+
+        const createMilesLines = function () {
+            for (let i = x0Position - 200; i < x0Position + 200; i += 10) {
                 let planeMileMarker = new PlaneMileMarker(i);
                 planeMileMarkers.push(planeMileMarker);
                 lastMileMarkerPosition = i;
-    
-    
+
+
                 let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
                 planeCentreLines.push(planeCentreLine);
                 //lastCentreLinePosition = i *2;
             }
-           
+
         }
 
         createMilesLines();
 
-        function updateMilesLinesPosition(){
-            
-            
+        function updateMilesLinesPosition() {
+
+
             for (let i in planeMileMarkers) {
-                
+
                 planeMileMarkers[i].dispose();
                 planeCentreLines[i].dispose();
             }
             planeMileMarkers.length = 0;
             planeCentreLines.length = 0;
             createMilesLines();
-            
+
         }
-        
-
-        
-
-    
 
         ////////////////////////////////
 
-
-
         //todo: move and combine this async function into a bigger scene function 
-
 
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
-
             textBlockTimeTotal = advancedTexture.getControlByName("TextBlockTimeTotal") as TextBlock;
 
+            buttonA =  advancedTexture.getControlByName("ButtonA") as Button;
+            buttonB =  advancedTexture.getControlByName("ButtonB") as Button;
+            buttonC =  advancedTexture.getControlByName("ButtonC") as Button;
+
+            function shuffleAnswers(){
+                buttonA.textBlock.text = (x0Position/2).toString();
+                buttonB.textBlock.text = (x0Position/2+30).toString();
+                buttonC.textBlock.text = (x0Position/2-30).toString();
+
+            }
+            shuffleAnswers();
 
             buttonReplay = advancedTexture.getControlByName("ButtonReplay") as Button;
-
-            buttonReplay.onPointerUpObservable.add(function (){
+            buttonReplay.onPointerUpObservable.add(function () {
                 cube.position.x = x0Position;
 
-                console.log(planeMileMarkers.length,planeCentreLines.length);
+                console.log(planeMileMarkers.length, planeCentreLines.length);
                 updateMilesLinesPosition();
 
-
-                
                 time = 0;
             });
 
             let time: number = 0;
 
-            let timeEnd: number = 60;
-
-
-
-
+            let timeEnd: number = 30;
 
             engine.runRenderLoop(() => {
 
                 scene.render();
 
-                if(timeEnd > 0.5){
+                if (timeEnd > 0.5) {
                     timeEnd -= engine.getDeltaTime() / 1000;
-                    textBlockTimeTotal.text = "Time to end: "+ timeEnd.toFixed(0) +" s";
+                    textBlockTimeTotal.text = "Time to end: " + timeEnd.toFixed(0) + " s";
                     cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
                     time += engine.getDeltaTime() / 1000;
-
-                } 
-                else{
+                }
+                else {
                     music.pause();
                 }
-                
-                
 
-                
-                plane.position.x = cube.position.x 
+                plane.position.x = cube.position.x
                 //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
@@ -337,6 +317,7 @@ class App {
             });
 
         }
+
         createGUI()
 
 
