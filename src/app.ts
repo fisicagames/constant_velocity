@@ -8,7 +8,7 @@
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-//import "@babylonjs/inspector";
+import "@babylonjs/inspector";
 
 import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
@@ -61,10 +61,25 @@ class App {
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
 
+
+        ////////////////////////////////
+
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, null, {
             loop: true,
-            autoplay: true,
+            autoplay: false,
         });
+
+        document.addEventListener("visibilitychange", event => {
+            //https://forum.babylonjs.com/t/pointer-over-action-vs-lost-focus/18836/3
+            if (document.visibilityState == "visible") {
+                console.log("tab is active")
+                if (!music.isPlaying) music.play();
+            } else {
+                music.pause();
+            }
+        })
+
+        ////////////////////////////////
 
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), scene);
         //camera.attachControl(canvas, false);
@@ -200,7 +215,7 @@ class App {
 
 
         //todo: move and combine this async function into a bigger scene function 
-        
+
 
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
@@ -220,7 +235,7 @@ class App {
                 camera.radius = 54;
                 camera.target = cube.position;
 
-                textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1)+"  (S.I.)" ;
+                textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
                 //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
                 if (xVelocity > 0) {
                     for (let i in planeMileMarkers) {
