@@ -60,7 +60,10 @@ class App {
             }
         }
 
-
+        function transitionToStartMenu(){
+            state = GameState.StartMenu;
+            rectangleMenu.isVisible = true;
+        }
 
         // create the canvas html element and attach it to the webpage
         const canvas = document.createElement("canvas");
@@ -146,12 +149,14 @@ class App {
         let x0Position, x0: number = 0;
 
 
+        function startCube(){
+            xVelocity = (1 + Math.floor(Math.random()*5 ));
+            x0 = (-20 + Math.random() * 40);
+            x0Position = Math.round(x0) * 20;
+            x0 = x0 * 20;
+            cube.position.x = x0;
+        }
         
-        xVelocity = (1 + Math.floor(Math.random()*5 ));
-        x0 = (-20 + Math.random() * 40);
-        x0Position = Math.round(x0) * 20;
-        x0 = x0 * 20;
-        cube.position.x = x0;
 
         camera.target = cube.position;
 
@@ -163,6 +168,9 @@ class App {
         let textblockQuestion: TextBlock;
         let textblockMenuLink: TextBlock;
         let textblockMenuMusic: TextBlock;
+        let textblockMenuBest: TextBlock;
+        let textblockMenuScore: TextBlock;
+        
 
 
         let buttonMenuStart: Button; 
@@ -303,6 +311,10 @@ class App {
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
+
+            textblockMenuBest = advancedTexture.getControlByName("TextblockMenuBest") as TextBlock;
+            textblockMenuScore = advancedTexture.getControlByName("TextblockMenuScore") as TextBlock;
+            
             textblockMenuLink = advancedTexture.getControlByName("TextblockMenuLink") as TextBlock;
             textblockMenuLink.onPointerUpObservable.add(function(){
                 //window.open("https://fisicagames.com.br")
@@ -332,8 +344,12 @@ class App {
             buttonMenuStart.onPointerUpObservable.add(function(){
                 rectangleMenu.isVisible = false;
                 state = GameState.PositionQuestion;
-
-
+                startCube();
+                updateMilesLinesPosition();
+                shuffleAnswersPosition();
+                score = 0;
+                textBlockScore.text = `Score: ${score}`;
+                timeEnd = 30;
             });
 
             buttonMenu = advancedTexture.getControlByName("ButtonMenu") as Button;
@@ -362,9 +378,13 @@ class App {
 
             const buttons: Button[] = [buttonA, buttonB, buttonC];
 
-            function shuffleAnswers() {
+            function shuffleAnswersPosition() {
 
                 const order: number = Math.ceil(Math.random() * 3);
+
+                for (let i in buttons) {
+                    buttons[i].background = "#C32BADFF";
+                    }
 
                 switch (order) {
                     case 1:
@@ -386,22 +406,22 @@ class App {
                         break;
                 }
             }
-            shuffleAnswers();
+            shuffleAnswersPosition();
             //console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
 
             buttonA.onPointerClickObservable.add(function () {
                 console.log("buttonA", state)
 
-                checkAnswers(0)
+                checkAnswersPosition(0)
             })
             buttonB.onPointerClickObservable.add(function () {
-                checkAnswers(1)
+                checkAnswersPosition(1)
             })
             buttonC.onPointerClickObservable.add(function () {
-                checkAnswers(2)
+                checkAnswersPosition(2)
             })
 
-            function checkAnswers(b: number) {
+            function checkAnswersPosition(b: number) {
                 if(state == GameState.PositionQuestion){
                     for (let i in buttons) {
                         if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
@@ -417,16 +437,21 @@ class App {
                     if (buttonIsCorrect[b] == true) {
                         score += 1;
                         textBlockScore.text = `Score: ${score}`;
+                        textblockMenuScore.text = `Score: ${score}`;
                         console.log("if", state);
                         state = GameState.CorrectPositionAnswer;
                         console.log("if", state);
                         if(score > bestScore) {
                             bestScore = score;
                             textBlockBestScore.text = `Best: ${bestScore}`;
+                            textblockMenuBest.text= `Best: ${bestScore}`;
                         }
                     }
                     else{
                         state = GameState.IncorrectAnswer;
+                        setTimeout(transitionToStartMenu, 2000);
+                        textBlockTimeTotal.text = "Game Over!";
+
                     }
                 }
                 
