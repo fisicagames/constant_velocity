@@ -34,7 +34,7 @@ class App {
         let musicon: boolean = true;
         
         enum GameState {
-            StartNewLevel,
+            StartMenu,
             PositionQuestion,
             CorrectPositionAnswer,
             IncorrectAnswer,
@@ -43,13 +43,13 @@ class App {
             GameOver
         }
 
-        let state: GameState = GameState.PositionQuestion;
+        let state: GameState = GameState.StartMenu;
         
         gameController(state);
 
         function gameController(state: GameState){
             switch (state) {
-                case 0:
+                case GameState.StartMenu:
                     
                     break;
                 case 1:
@@ -141,9 +141,13 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        let xVelocity: number = 5;
+        
+        let xVelocity: number = 0; 
         let x0Position, x0: number = 0;
 
+
+        
+        xVelocity = (1 + Math.floor(Math.random()*5 ));
         x0 = (-20 + Math.random() * 40);
         x0Position = Math.round(x0) * 20;
         x0 = x0 * 20;
@@ -327,11 +331,15 @@ class App {
 
             buttonMenuStart.onPointerUpObservable.add(function(){
                 rectangleMenu.isVisible = false;
+                state = GameState.PositionQuestion;
+
+
             });
 
             buttonMenu = advancedTexture.getControlByName("ButtonMenu") as Button;
             buttonMenu.onPointerUpObservable.add(function(){
                 rectangleMenu.isVisible = true;
+                state = GameState.StartMenu;
             });
 
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
@@ -445,7 +453,7 @@ class App {
 
                 scene.render();
 
-                if (timeEnd > 0.5) {
+                if (timeEnd > 0.5 && state == (GameState.PositionQuestion|| state == GameState.VelocityQuestion) ) {
                     timeEnd -= engine.getDeltaTime() / 1000;
                     textBlockTimeTotal.text = "Time Left: " + timeEnd.toFixed(0) + " s";
                     cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
@@ -456,7 +464,6 @@ class App {
                 }
 
                 plane.position.x = cube.position.x
-                //camera.position.x = cube.position.x - 3;
                 camera.position = new Vector3(cube.position.x - 4, 3, -4);
                 camera.radius = 54;
                 camera.target = cube.position;
@@ -474,7 +481,6 @@ class App {
                 }
                 
                 
-                //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
                 if (xVelocity > 0) {
                     for (let i in planeMileMarkers) {
                         if (cube.position.x - 200 > planeMileMarkers[i].mesh.position.x) {
@@ -485,7 +491,6 @@ class App {
 
                             lastMileMarkerPosition += 10;
 
-                            //planeCentreLines[i].mesh.position.x += 50;
 
                         }
                     }
@@ -509,8 +514,6 @@ class App {
                 }
             }
         });
-
-        // run the main render loop
 
 
         // Resize
