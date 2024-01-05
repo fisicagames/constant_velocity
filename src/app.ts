@@ -7,7 +7,7 @@
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-import "@babylonjs/inspector";
+//import "@babylonjs/inspector";
 
 import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
@@ -20,7 +20,7 @@ import {
 } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#29
+//GUI: https://gui.babylonjs.com/#HEG7HH#30
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
@@ -41,27 +41,13 @@ class App {
             CorrectAnswerPosition,
             IncorrectAnswer,
             VelocityQuestion,
-            CorrectVelocityQuestion,
+            CorrectAnswerVelocity,
             GameOver
         }
 
         let state: GameState = GameState.StartMenu;
 
 
-        function gameController() {
-            switch (state) {
-                case GameState.IncorrectAnswer:
-                    state = GameState.StartMenu;
-                    rectangleMenu.isVisible = true;
-                    break;
-                case GameState.CorrectAnswerPosition:
-
-                    break;
-                default:
-                    console.log("State null")
-                    break;
-            }
-        }
 
 
 
@@ -311,6 +297,46 @@ class App {
         //todo: move and combine this async function into a bigger scene function 
 
         async function createGUI() {
+
+
+            function gameController() {
+                //console.log("teste async");
+
+                switch (state) {
+                    case GameState.IncorrectAnswer:
+                        state = GameState.StartMenu;
+                        rectangleMenu.isVisible = true;
+                        break;
+                    case GameState.CorrectAnswerPosition:
+                        shuffleAnswersVelocity();
+                        textblockQuestion.text = `What is the constant velocity v0?`
+                        state = GameState.VelocityQuestion;
+                        break;
+                    case GameState.CorrectAnswerVelocity:
+                        startCube();
+                        updateMilesLinesPosition();
+                        shuffleAnswersPosition();
+                        textblockQuestion.text = `What is the initial position s0?`
+                        state = GameState.PositionQuestion;
+                        break;
+                    case GameState.StartMenu:
+                        startCube();
+                        updateMilesLinesPosition();
+                        shuffleAnswersPosition();
+                        textblockQuestion.text = `What is the initial position s0?`
+                        score = 0;
+                        textBlockScore.text = `Score: ${score}`;
+                        timeEnd = 60;
+                        rectangleMenu.isVisible = false;
+                        state = GameState.PositionQuestion;
+                        break
+                    default:
+                        console.log("State null")
+                        break;
+                }
+            }
+
+            
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
 
@@ -344,14 +370,10 @@ class App {
             rectangleMenu = advancedTexture.getControlByName("RectangleMenu") as Rectangle;
 
             buttonMenuStart.onPointerUpObservable.add(function () {
-                rectangleMenu.isVisible = false;
-                state = GameState.PositionQuestion;
-                startCube();
-                updateMilesLinesPosition();
-                shuffleAnswersPosition();
-                score = 0;
-                textBlockScore.text = `Score: ${score}`;
-                timeEnd = 30;
+                state = GameState.StartMenu;
+                gameController();
+
+
             });
 
             buttonMenu = advancedTexture.getControlByName("ButtonMenu") as Button;
@@ -418,22 +440,21 @@ class App {
                 for (let i in buttons) {
                     buttons[i].background = "#C32BADFF";
                 }
-
                 switch (order) {
                     case 1:
-                        buttonA.textBlock.text = (x0 / 2).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0 / 2 + 60).toFixed(0).toString();
+                        buttonA.textBlock.text = (xVelocity).toFixed(0).toString();
+                        buttonB.textBlock.text = (xVelocity + 10).toFixed(0).toString();
+                        buttonC.textBlock.text = (xVelocity + 20).toFixed(0).toString();
                         break;
                     case 2:
-                        buttonA.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0 / 2).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                        buttonA.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                        buttonB.textBlock.text = (xVelocity).toFixed(0).toString();
+                        buttonC.textBlock.text = (xVelocity + 10).toFixed(0).toString();
                         break;
                     case 3:
-                        buttonA.textBlock.text = (x0 / 2 - 60).toFixed(0).toString();
-                        buttonB.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
-                        buttonC.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        buttonA.textBlock.text = (xVelocity - 20).toFixed(0).toString();
+                        buttonB.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                        buttonC.textBlock.text = (xVelocity).toFixed(0).toString();
                         break;
                     default:
                         break;
@@ -442,18 +463,17 @@ class App {
 
 
             buttonA.onPointerClickObservable.add(function () {
-                console.log("buttonA", state)
-
-                checkAnswersPosition(0)
+                checkAnswers(0)
             })
             buttonB.onPointerClickObservable.add(function () {
-                checkAnswersPosition(1)
+                checkAnswers(1)
             })
             buttonC.onPointerClickObservable.add(function () {
-                checkAnswersPosition(2)
+                checkAnswers(2)
             })
 
-            function checkAnswersPosition(b: number) {
+
+            function checkAnswers(b: number) {
                 if (state == GameState.PositionQuestion) {
                     for (let i in buttons) {
                         if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
@@ -488,6 +508,43 @@ class App {
 
                     }
                 }
+                else if (state == GameState.VelocityQuestion) {
+                    for (let i in buttons) {
+                        if (buttons[i].textBlock.text == (xVelocity).toFixed(0).toString()) {
+                            buttons[i].background = "#27b376";
+                            buttonIsCorrect[i] = true;
+                        }
+                        else {
+                            buttons[i].background = "#bf212f";
+                            buttonIsCorrect[i] = false;
+                        }
+
+                    }
+                    if (buttonIsCorrect[b] == true) {
+                        score += 1;
+                        textBlockScore.text = `Score: ${score}`;
+                        textblockMenuScore.text = `Score: ${score}`;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            textBlockBestScore.text = `Best: ${bestScore}`;
+                            textblockMenuBest.text = `Best: ${bestScore}`;
+                        }
+                        state = GameState.CorrectAnswerVelocity;
+                        textBlockTimeTotal.text = "Correct!";
+                        setTimeout(gameController, 2000);
+
+
+                    }
+                    else {
+                        textBlockTimeTotal.text = "Game Over!";
+                        state = GameState.IncorrectAnswer;
+                        setTimeout(gameController, 2000);
+
+                    }
+                }
+              
+
+
 
 
             }
@@ -506,20 +563,22 @@ class App {
 
             let time: number = 0;
 
-            let timeEnd: number = 30;
+            let timeEnd: number = 60;
 
             engine.runRenderLoop(() => {
 
                 scene.render();
 
-                if (timeEnd > 0.5 && state == (GameState.PositionQuestion || state == GameState.VelocityQuestion)) {
+                if (timeEnd > 0.5 && (state == GameState.PositionQuestion || state == GameState.VelocityQuestion)) {
                     timeEnd -= engine.getDeltaTime() / 1000;
                     textBlockTimeTotal.text = "Time Left: " + timeEnd.toFixed(0) + " s";
                     cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
                     time += engine.getDeltaTime() / 1000;
                 }
-                else {
-                    //music.pause();
+                else if(state == GameState.PositionQuestion || state == GameState.VelocityQuestion){
+                    textBlockTimeTotal.text = "Game Over!";
+                    state = GameState.IncorrectAnswer;
+                    setTimeout(gameController, 2000);
                 }
 
                 plane.position.x = cube.position.x
@@ -532,8 +591,12 @@ class App {
                     case GameState.PositionQuestion:
                         textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
                         break;
-                    case GameState.CorrectVelocityQuestion:
+                    case GameState.VelocityQuestion:
                         textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = " + (x0 / 2).toFixed(0).toString() + " +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                        break;
+                    case GameState.CorrectAnswerVelocity:
+                        textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = " + (x0 / 2).toFixed(0).toString() + " + " + (xVelocity).toFixed(0).toString() + " * " + time.toFixed(1) + "  (S.I.)";
+
                         break;
                     default:
                         break;

@@ -7,10 +7,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture } from "@babylonjs/core";
+import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
 class App {
     constructor() {
+        let score = 0;
+        let bestScore = 0;
+        let musicon = true;
+        let GameState;
+        (function (GameState) {
+            GameState[GameState["StartMenu"] = 0] = "StartMenu";
+            GameState[GameState["PositionQuestion"] = 1] = "PositionQuestion";
+            GameState[GameState["CorrectAnswerPosition"] = 2] = "CorrectAnswerPosition";
+            GameState[GameState["IncorrectAnswer"] = 3] = "IncorrectAnswer";
+            GameState[GameState["VelocityQuestion"] = 4] = "VelocityQuestion";
+            GameState[GameState["CorrectAnswerVelocity"] = 5] = "CorrectAnswerVelocity";
+            GameState[GameState["GameOver"] = 6] = "GameOver";
+        })(GameState || (GameState = {}));
+        let state = GameState.StartMenu;
         const canvas = document.createElement("canvas");
         let adjustCanvas = function () {
             let screenW = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
@@ -25,15 +39,31 @@ class App {
             }
         };
         adjustCanvas();
-        console.log(canvas.style.width, canvas.style.height);
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
         const engine = new Engine(canvas, true);
+        engine.displayLoadingUI();
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
-        const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, null, {
+        const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
-            autoplay: true,
+            autoplay: false,
+        });
+        function soundReady() {
+            engine.hideLoadingUI();
+            if (document.visibilityState == "visible" && musicon)
+                music.play();
+            music.setVolume(0.8);
+        }
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState == "visible" && musicon) {
+                console.log("tab is active");
+                if (!music.isPlaying)
+                    music.play();
+            }
+            else {
+                music.pause();
+            }
         });
         const camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), scene);
         camera.position = new Vector3(-3, 6, -3);
@@ -50,11 +80,34 @@ class App {
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
-        let xVelocity = 1;
-        cube.position.x = 0;
+        let xVelocity = 0;
+        let x0Position, x0 = 0;
+        function startCube() {
+            xVelocity = (1 + Math.floor(Math.random() * 5));
+            x0 = (-20 + Math.random() * 40);
+            x0Position = Math.round(x0) * 20;
+            x0 = x0 * 20;
+            cube.position.x = x0;
+        }
         camera.target = cube.position;
-        let advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
+        const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
         let textBlockEquation;
+        let textBlockTimeTotal;
+        let textBlockScore;
+        let textBlockBestScore;
+        let textblockQuestion;
+        let textblockMenuLink;
+        let textblockMenuMusic;
+        let textblockMenuBest;
+        let textblockMenuScore;
+        let buttonMenuStart;
+        let buttonMenu;
+        let buttonReplay;
+        let buttonA;
+        let buttonB;
+        let buttonC;
+        let rectangleMenu;
+        const planeCentreNode = new TransformNode("planeCentreNode");
         const planeCentreLines = [];
         const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
         materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
@@ -76,8 +129,13 @@ class App {
                 this.mesh.material = materialPlaneCentreLine;
                 this.mesh.position = new Vector3(x, 0.1, 0);
                 this.mesh.rotation.x = Math.PI / 2;
+                this.mesh.parent = planeCentreNode;
+            }
+            dispose() {
+                this.mesh.dispose();
             }
         }
+        const planeMileMarkerNode = new TransformNode("planeMileMarkerNode");
         const planeMileMarkers = [];
         class PlaneMileMarker {
             constructor(xPosition = 0) {
@@ -114,6 +172,7 @@ class App {
                 this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
                 this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                 this.mesh.rotation.y = Math.PI / 2.5;
+                this.mesh.parent = planeMileMarkerNode;
                 const font_size = 48;
                 const font = "normal " + font_size + "px Arial";
                 const planeHeight = 4;
@@ -139,31 +198,270 @@ class App {
             }
         }
         let lastMileMarkerPosition = 0;
-        for (let i = -200; i < 200; i += 10) {
-            let planeMileMarker = new PlaneMileMarker(i);
-            planeMileMarkers.push(planeMileMarker);
-            lastMileMarkerPosition = i;
-            let planeCentreLine = new PlaneCentreLine(i * 2);
-            planeCentreLines.push(planeCentreLine);
+        const createMilesLines = function () {
+            for (let i = x0Position - 200; i < x0Position + 200; i += 10) {
+                let planeMileMarker = new PlaneMileMarker(i);
+                planeMileMarkers.push(planeMileMarker);
+                lastMileMarkerPosition = i;
+                let planeCentreLine = new PlaneCentreLine(i * 2);
+                planeCentreLines.push(planeCentreLine);
+            }
+        };
+        createMilesLines();
+        function updateMilesLinesPosition() {
+            for (let i in planeMileMarkers) {
+                planeMileMarkers[i].dispose();
+                planeCentreLines[i].dispose();
+            }
+            planeMileMarkers.length = 0;
+            planeCentreLines.length = 0;
+            createMilesLines();
         }
         function createGUI() {
             return __awaiter(this, void 0, void 0, function* () {
+                function gameController() {
+                    switch (state) {
+                        case GameState.IncorrectAnswer:
+                            state = GameState.StartMenu;
+                            rectangleMenu.isVisible = true;
+                            break;
+                        case GameState.CorrectAnswerPosition:
+                            shuffleAnswersVelocity();
+                            textblockQuestion.text = `What is the constant velocity v0?`;
+                            state = GameState.VelocityQuestion;
+                            break;
+                        case GameState.CorrectAnswerVelocity:
+                            startCube();
+                            updateMilesLinesPosition();
+                            shuffleAnswersPosition();
+                            textblockQuestion.text = `What is the initial position s0?`;
+                            state = GameState.PositionQuestion;
+                            break;
+                        case GameState.StartMenu:
+                            startCube();
+                            updateMilesLinesPosition();
+                            shuffleAnswersPosition();
+                            textblockQuestion.text = `What is the initial position s0?`;
+                            score = 0;
+                            textBlockScore.text = `Score: ${score}`;
+                            timeEnd = 60;
+                            rectangleMenu.isVisible = false;
+                            state = GameState.PositionQuestion;
+                            break;
+                        default:
+                            console.log("State null");
+                            break;
+                    }
+                }
                 let loadedGUI = yield advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
+                textblockMenuBest = advancedTexture.getControlByName("TextblockMenuBest");
+                textblockMenuScore = advancedTexture.getControlByName("TextblockMenuScore");
+                textblockMenuLink = advancedTexture.getControlByName("TextblockMenuLink");
+                textblockMenuLink.onPointerUpObservable.add(function () {
+                    location.href = "https://fisicagames.com.br";
+                });
+                textblockMenuMusic = advancedTexture.getControlByName("TextblockMenuMusic");
+                ;
+                textblockMenuMusic.onPointerUpObservable.add(function () {
+                    if (music.isPlaying) {
+                        music.stop();
+                        musicon = false;
+                        textblockMenuMusic.text = "music: off";
+                    }
+                    else {
+                        music.play();
+                        musicon = true;
+                        textblockMenuMusic.text = "music: on";
+                    }
+                });
+                buttonMenuStart = advancedTexture.getControlByName("ButtonMenuStart");
+                rectangleMenu = advancedTexture.getControlByName("RectangleMenu");
+                buttonMenuStart.onPointerUpObservable.add(function () {
+                    state = GameState.StartMenu;
+                    gameController();
+                });
+                buttonMenu = advancedTexture.getControlByName("ButtonMenu");
+                buttonMenu.onPointerUpObservable.add(function () {
+                    rectangleMenu.isVisible = true;
+                    state = GameState.StartMenu;
+                });
                 textBlockEquation = advancedTexture.getControlByName("TextBlockEquation");
                 textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
+                textBlockTimeTotal = advancedTexture.getControlByName("TextblockTimeTotal");
+                textBlockScore = advancedTexture.getControlByName("TextblockScore");
+                textBlockScore.text = `Score: ${score}`;
+                textBlockBestScore = advancedTexture.getControlByName("TextBlockBestScore");
+                textBlockBestScore.text = `Best: ${bestScore}`;
+                textblockQuestion = advancedTexture.getControlByName("TextblockQuestion");
+                textblockQuestion.text = `What is the initial position s0?`;
+                let buttonIsCorrect = [false, false, false];
+                buttonA = advancedTexture.getControlByName("ButtonA");
+                buttonB = advancedTexture.getControlByName("ButtonB");
+                buttonC = advancedTexture.getControlByName("ButtonC");
+                const buttons = [buttonA, buttonB, buttonC];
+                function shuffleAnswersPosition() {
+                    const order = Math.ceil(Math.random() * 3);
+                    for (let i in buttons) {
+                        buttons[i].background = "#C32BADFF";
+                    }
+                    switch (order) {
+                        case 1:
+                            buttonA.textBlock.text = (x0 / 2).toFixed(0).toString();
+                            buttonB.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                            buttonC.textBlock.text = (x0 / 2 + 60).toFixed(0).toString();
+                            break;
+                        case 2:
+                            buttonA.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                            buttonB.textBlock.text = (x0 / 2).toFixed(0).toString();
+                            buttonC.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                            break;
+                        case 3:
+                            buttonA.textBlock.text = (x0 / 2 - 60).toFixed(0).toString();
+                            buttonB.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                            buttonC.textBlock.text = (x0 / 2).toFixed(0).toString();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                shuffleAnswersPosition();
+                function shuffleAnswersVelocity() {
+                    const order = Math.ceil(Math.random() * 3);
+                    for (let i in buttons) {
+                        buttons[i].background = "#C32BADFF";
+                    }
+                    switch (order) {
+                        case 1:
+                            buttonA.textBlock.text = (xVelocity).toFixed(0).toString();
+                            buttonB.textBlock.text = (xVelocity + 10).toFixed(0).toString();
+                            buttonC.textBlock.text = (xVelocity + 20).toFixed(0).toString();
+                            break;
+                        case 2:
+                            buttonA.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                            buttonB.textBlock.text = (xVelocity).toFixed(0).toString();
+                            buttonC.textBlock.text = (xVelocity + 10).toFixed(0).toString();
+                            break;
+                        case 3:
+                            buttonA.textBlock.text = (xVelocity - 20).toFixed(0).toString();
+                            buttonB.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                            buttonC.textBlock.text = (xVelocity).toFixed(0).toString();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                buttonA.onPointerClickObservable.add(function () {
+                    checkAnswers(0);
+                });
+                buttonB.onPointerClickObservable.add(function () {
+                    checkAnswers(1);
+                });
+                buttonC.onPointerClickObservable.add(function () {
+                    checkAnswers(2);
+                });
+                function checkAnswers(b) {
+                    if (state == GameState.PositionQuestion) {
+                        for (let i in buttons) {
+                            if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
+                                buttons[i].background = "#27b376";
+                                buttonIsCorrect[i] = true;
+                            }
+                            else {
+                                buttons[i].background = "#bf212f";
+                                buttonIsCorrect[i] = false;
+                            }
+                        }
+                        if (buttonIsCorrect[b] == true) {
+                            score += 1;
+                            textBlockScore.text = `Score: ${score}`;
+                            textblockMenuScore.text = `Score: ${score}`;
+                            if (score > bestScore) {
+                                bestScore = score;
+                                textBlockBestScore.text = `Best: ${bestScore}`;
+                                textblockMenuBest.text = `Best: ${bestScore}`;
+                            }
+                            state = GameState.CorrectAnswerPosition;
+                            textBlockTimeTotal.text = "Correct!";
+                            setTimeout(gameController, 1000);
+                        }
+                        else {
+                            textBlockTimeTotal.text = "Game Over!";
+                            state = GameState.IncorrectAnswer;
+                            setTimeout(gameController, 2000);
+                        }
+                    }
+                    else if (state == GameState.VelocityQuestion) {
+                        for (let i in buttons) {
+                            if (buttons[i].textBlock.text == (xVelocity).toFixed(0).toString()) {
+                                buttons[i].background = "#27b376";
+                                buttonIsCorrect[i] = true;
+                            }
+                            else {
+                                buttons[i].background = "#bf212f";
+                                buttonIsCorrect[i] = false;
+                            }
+                        }
+                        if (buttonIsCorrect[b] == true) {
+                            score += 1;
+                            textBlockScore.text = `Score: ${score}`;
+                            textblockMenuScore.text = `Score: ${score}`;
+                            if (score > bestScore) {
+                                bestScore = score;
+                                textBlockBestScore.text = `Best: ${bestScore}`;
+                                textblockMenuBest.text = `Best: ${bestScore}`;
+                            }
+                            state = GameState.CorrectAnswerVelocity;
+                            textBlockTimeTotal.text = "Correct!";
+                            setTimeout(gameController, 2000);
+                        }
+                        else {
+                            textBlockTimeTotal.text = "Game Over!";
+                            state = GameState.IncorrectAnswer;
+                            setTimeout(gameController, 2000);
+                        }
+                    }
+                }
+                buttonReplay = advancedTexture.getControlByName("ButtonReplay");
+                buttonReplay.onPointerUpObservable.add(function () {
+                    cube.position.x = x0;
+                    updateMilesLinesPosition();
+                    time = 0;
+                });
                 let time = 0;
+                let timeEnd = 60;
                 engine.runRenderLoop(() => {
                     scene.render();
-                    time += engine.getDeltaTime() / 1000;
-                    cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
+                    if (timeEnd > 0.5 && (state == GameState.PositionQuestion || state == GameState.VelocityQuestion)) {
+                        timeEnd -= engine.getDeltaTime() / 1000;
+                        textBlockTimeTotal.text = "Time Left: " + timeEnd.toFixed(0) + " s";
+                        cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
+                        time += engine.getDeltaTime() / 1000;
+                    }
+                    else if (state == GameState.PositionQuestion || state == GameState.VelocityQuestion) {
+                        textBlockTimeTotal.text = "Game Over!";
+                        state = GameState.IncorrectAnswer;
+                        setTimeout(gameController, 2000);
+                    }
                     plane.position.x = cube.position.x;
                     camera.position = new Vector3(cube.position.x - 4, 3, -4);
                     camera.radius = 54;
                     camera.target = cube.position;
-                    textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                    switch (state) {
+                        case GameState.PositionQuestion:
+                            textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                            break;
+                        case GameState.VelocityQuestion:
+                            textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = " + (x0 / 2).toFixed(0).toString() + " +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                            break;
+                        case GameState.CorrectAnswerVelocity:
+                            textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = " + (x0 / 2).toFixed(0).toString() + " + " + (xVelocity).toFixed(0).toString() + " * " + time.toFixed(1) + "  (S.I.)";
+                            break;
+                        default:
+                            break;
+                    }
                     if (xVelocity > 0) {
                         for (let i in planeMileMarkers) {
-                            if (cube.position.x - 100 > planeMileMarkers[i].mesh.position.x) {
+                            if (cube.position.x - 200 > planeMileMarkers[i].mesh.position.x) {
                                 planeMileMarkers[i].dispose();
                                 planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
                                 planeCentreLines[i].mesh.position.x = lastMileMarkerPosition * 2;
