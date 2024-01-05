@@ -14,10 +14,11 @@ import {
     Vector3, HemisphericLight, Mesh, MeshBuilder,
     StandardMaterial, Sound, DynamicTexture, TransformNode
 } from "@babylonjs/core";
-import { AdvancedDynamicTexture, TextBlock, Button } from "@babylonjs/gui";
+import { AdvancedDynamicTexture, TextBlock, Button,
+    Rectangle} from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#17
+//GUI: https://gui.babylonjs.com/#HEG7HH#29
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
@@ -30,10 +31,10 @@ class App {
         
         let score: number = 0;
         let bestScore: number = 0;
-        let gameOver: boolean = false;
+        let musicon: boolean = true;
         
         enum GameState {
-            Start,
+            StartNewLevel,
             PositionQuestion,
             CorrectPositionAnswer,
             IncorrectAnswer,
@@ -42,16 +43,17 @@ class App {
             GameOver
         }
 
-        const state: GameState = GameState.Start;
+        let state: GameState = GameState.PositionQuestion;
+        
         gameController(state);
 
         function gameController(state: GameState){
             switch (state) {
                 case 0:
-                    console.log(state)
+                    
                     break;
                 case 1:
-
+                    
                     break;
                 default:
                     break;
@@ -99,13 +101,13 @@ class App {
         function soundReady() {
             engine.hideLoadingUI();
 
-            if (document.visibilityState == "visible") music.play();
+            if (document.visibilityState == "visible" && musicon) music.play();
             music.setVolume(0.8);
         }
 
         document.addEventListener("visibilitychange", () => {
             //https://forum.babylonjs.com/t/pointer-over-action-vs-lost-focus/18836/3
-            if (document.visibilityState == "visible") {
+            if (document.visibilityState == "visible" && musicon) {
                 console.log("tab is active")
                 if (!music.isPlaying) music.play();
             } else {
@@ -154,11 +156,19 @@ class App {
         let textBlockTimeTotal: TextBlock;
         let textBlockScore: TextBlock;
         let textBlockBestScore: TextBlock;
+        let textblockQuestion: TextBlock;
+        let textblockMenuLink: TextBlock;
+        let textblockMenuMusic: TextBlock;
 
+
+        let buttonMenuStart: Button; 
+        let buttonMenu: Button;
         let buttonReplay: Button;
         let buttonA: Button;
         let buttonB: Button;
         let buttonC: Button;
+        
+        let rectangleMenu: Rectangle;
 
 
         ////////////////////////////////
@@ -289,14 +299,54 @@ class App {
         async function createGUI() {
             let loadedGUI = await advancedTexture.parseFromURLAsync("./assets/gui/guiTexture.json");
 
+            textblockMenuLink = advancedTexture.getControlByName("TextblockMenuLink") as TextBlock;
+            textblockMenuLink.onPointerUpObservable.add(function(){
+                //window.open("https://fisicagames.com.br")
+                location.href = "https://fisicagames.com.br";
+
+            });
+
+            textblockMenuMusic =  advancedTexture.getControlByName("TextblockMenuMusic") as TextBlock;;
+            textblockMenuMusic.onPointerUpObservable.add(function(){
+                if(music.isPlaying){
+                    music.stop();
+                    musicon = false;
+                    textblockMenuMusic.text = "music: off";
+                }
+                else{
+                    music.play();
+                    musicon = true;
+                    textblockMenuMusic.text = "music: on";
+                }
+            });
+
+           
+           
+            buttonMenuStart = advancedTexture.getControlByName("ButtonMenuStart") as Button;
+            rectangleMenu = advancedTexture.getControlByName("RectangleMenu") as Rectangle;
+
+            buttonMenuStart.onPointerUpObservable.add(function(){
+                rectangleMenu.isVisible = false;
+            });
+
+            buttonMenu = advancedTexture.getControlByName("ButtonMenu") as Button;
+            buttonMenu.onPointerUpObservable.add(function(){
+                rectangleMenu.isVisible = true;
+            });
+
             textBlockEquation = advancedTexture.getControlByName("TextBlockEquation") as TextBlock;
             textBlockEquation.text = "s(t) =  ?  +  ?   * t ";
-            textBlockTimeTotal = advancedTexture.getControlByName("TextBlockTimeTotal") as TextBlock;
+            textBlockTimeTotal = advancedTexture.getControlByName("TextblockTimeTotal") as TextBlock;
             textBlockScore = advancedTexture.getControlByName("TextblockScore") as TextBlock;
             textBlockScore.text = `Score: ${score}`;
-            textBlockBestScore = advancedTexture.getControlByName("TextblockBestScore") as TextBlock;
-            textBlockBestScore.text = `Best Score: ${bestScore}`;
+            textBlockBestScore = advancedTexture.getControlByName("TextBlockBestScore") as TextBlock;
+            textBlockBestScore.text = `Best: ${bestScore}`;
+            textblockQuestion = advancedTexture.getControlByName("TextblockQuestion") as TextBlock;
+            textblockQuestion.text = `What is the initial position s0?`
 
+
+
+            
             let buttonIsCorrect: boolean[] = [false, false, false];
             buttonA = advancedTexture.getControlByName("ButtonA") as Button;
             buttonB = advancedTexture.getControlByName("ButtonB") as Button;
@@ -332,6 +382,8 @@ class App {
             //console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
 
             buttonA.onPointerClickObservable.add(function () {
+                console.log("buttonA", state)
+
                 checkAnswers(0)
             })
             buttonB.onPointerClickObservable.add(function () {
@@ -342,25 +394,34 @@ class App {
             })
 
             function checkAnswers(b: number) {
-                for (let i in buttons) {
-                    if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
-                        buttons[i].background = "#27b376";
-                        buttonIsCorrect[i] = true;
+                if(state == GameState.PositionQuestion){
+                    for (let i in buttons) {
+                        if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
+                            buttons[i].background = "#27b376";
+                            buttonIsCorrect[i] = true;
+                        }
+                        else {
+                            buttons[i].background = "#bf212f";
+                            buttonIsCorrect[i] = false;
+                        }
+    
                     }
-                    else {
-                        buttons[i].background = "#bf212f";
-                        buttonIsCorrect[i] = false;
+                    if (buttonIsCorrect[b] == true) {
+                        score += 1;
+                        textBlockScore.text = `Score: ${score}`;
+                        console.log("if", state);
+                        state = GameState.CorrectPositionAnswer;
+                        console.log("if", state);
+                        if(score > bestScore) {
+                            bestScore = score;
+                            textBlockBestScore.text = `Best: ${bestScore}`;
+                        }
                     }
-
+                    else{
+                        state = GameState.IncorrectAnswer;
+                    }
                 }
-                if (buttonIsCorrect[b] == true) {
-                    score += 1;
-                    textBlockScore.text = `Score: ${score}`;
-                    if(score > bestScore) {
-                        bestScore = score;
-                        textBlockBestScore.text = `Best Score: ${bestScore}`;
-                    }
-                }
+                
                 
             }
 
@@ -386,12 +447,12 @@ class App {
 
                 if (timeEnd > 0.5) {
                     timeEnd -= engine.getDeltaTime() / 1000;
-                    textBlockTimeTotal.text = "Time to end: " + timeEnd.toFixed(0) + " s";
+                    textBlockTimeTotal.text = "Time Left: " + timeEnd.toFixed(0) + " s";
                     cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
                     time += engine.getDeltaTime() / 1000;
                 }
                 else {
-                    music.pause();
+                    //music.pause();
                 }
 
                 plane.position.x = cube.position.x
@@ -400,7 +461,19 @@ class App {
                 camera.radius = 54;
                 camera.target = cube.position;
 
-                textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                
+                switch (state) {
+                    case GameState.PositionQuestion:
+                        textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                        break;
+                    case GameState.CorrectVelocityQuestion:
+                        textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = "+(x0 / 2).toFixed(0).toString() +  " +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                        break;
+                    default:
+                        break;
+                }
+                
+                
                 //console.log(cube.position.x, planeMileMarkers[0].mesh.position.x);
                 if (xVelocity > 0) {
                     for (let i in planeMileMarkers) {
