@@ -36,12 +36,29 @@ class App {
             Start,
             PositionQuestion,
             CorrectPositionAnswer,
-            IncorrectPositionAnswer,
+            IncorrectAnswer,
             VelocityQuestion,
             CorrectVelocityQuestion,
-            IncorrectVelocityQuestion,
             GameOver
         }
+
+        const state: GameState = GameState.Start;
+        gameController(state);
+
+        function gameController(state: GameState){
+            switch (state) {
+                case 0:
+                    console.log(state)
+                    break;
+                case 1:
+
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
 
         // create the canvas html element and attach it to the webpage
         const canvas = document.createElement("canvas");
@@ -62,12 +79,13 @@ class App {
         }
         adjustCanvas();
 
-        console.log(canvas.style.width, canvas.style.height);
+        //(canvas.style.width, canvas.style.height);
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
 
         // initialize babylon scene and engine
         const engine = new Engine(canvas, true);
+        engine.displayLoadingUI();
         const scene = new Scene(engine);
         scene.clearColor = Color4.FromHexString("#1DB9C3");
 
@@ -79,7 +97,10 @@ class App {
         });
 
         function soundReady() {
+            engine.hideLoadingUI();
+
             if (document.visibilityState == "visible") music.play();
+            music.setVolume(0.8);
         }
 
         document.addEventListener("visibilitychange", () => {
@@ -308,7 +329,7 @@ class App {
                 }
             }
             shuffleAnswers();
-            console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
+            //console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
 
             buttonA.onPointerClickObservable.add(function () {
                 checkAnswers(0)
@@ -349,7 +370,7 @@ class App {
             buttonReplay.onPointerUpObservable.add(function () {
                 cube.position.x = x0;
 
-                console.log(planeMileMarkers.length, planeCentreLines.length);
+                //console.log(planeMileMarkers.length, planeCentreLines.length);
                 updateMilesLinesPosition();
 
                 time = 0;
