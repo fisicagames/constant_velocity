@@ -1,4 +1,4 @@
-//2024 (C) Rafael João Ribeiro - IFPR - http://www.fisicagames.com.br
+//CONSTANT VELOCITY GAME (C) 2024 by Rafael João Ribeiro - IFPR - http://www.fisicagames.com.br
 //see todos in the code and:  
 //1. Add ./ in index.html
 //2. remove import inspector and debugLayer before build
@@ -14,8 +14,10 @@ import {
     Vector3, HemisphericLight, Mesh, MeshBuilder,
     StandardMaterial, Sound, DynamicTexture, TransformNode
 } from "@babylonjs/core";
-import { AdvancedDynamicTexture, TextBlock, Button,
-    Rectangle} from "@babylonjs/gui";
+import {
+    AdvancedDynamicTexture, TextBlock, Button,
+    Rectangle
+} from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
 //GUI: https://gui.babylonjs.com/#HEG7HH#29
@@ -28,15 +30,15 @@ import { AdvancedDynamicTexture, TextBlock, Button,
 
 class App {
     constructor() {
-        
+
         let score: number = 0;
         let bestScore: number = 0;
         let musicon: boolean = true;
-        
+
         enum GameState {
             StartMenu,
             PositionQuestion,
-            CorrectPositionAnswer,
+            CorrectAnswerPosition,
             IncorrectAnswer,
             VelocityQuestion,
             CorrectVelocityQuestion,
@@ -44,26 +46,26 @@ class App {
         }
 
         let state: GameState = GameState.StartMenu;
-        
-        gameController(state);
 
-        function gameController(state: GameState){
+
+        function gameController() {
             switch (state) {
-                case GameState.StartMenu:
-                    
+                case GameState.IncorrectAnswer:
+                    state = GameState.StartMenu;
+                    rectangleMenu.isVisible = true;
                     break;
-                case 1:
-                    
+                case GameState.CorrectAnswerPosition:
+
                     break;
                 default:
+                    console.log("State null")
                     break;
             }
         }
 
-        function transitionToStartMenu(){
-            state = GameState.StartMenu;
-            rectangleMenu.isVisible = true;
-        }
+
+
+
 
         // create the canvas html element and attach it to the webpage
         const canvas = document.createElement("canvas");
@@ -144,19 +146,19 @@ class App {
         cube.material = materialCube;
         cube.position = new Vector3(0, 1, -2);
 
-        
-        let xVelocity: number = 0; 
+
+        let xVelocity: number = 0;
         let x0Position, x0: number = 0;
 
 
-        function startCube(){
-            xVelocity = (1 + Math.floor(Math.random()*5 ));
+        function startCube() {
+            xVelocity = (1 + Math.floor(Math.random() * 5));
             x0 = (-20 + Math.random() * 40);
             x0Position = Math.round(x0) * 20;
             x0 = x0 * 20;
             cube.position.x = x0;
         }
-        
+
 
         camera.target = cube.position;
 
@@ -170,16 +172,16 @@ class App {
         let textblockMenuMusic: TextBlock;
         let textblockMenuBest: TextBlock;
         let textblockMenuScore: TextBlock;
-        
 
 
-        let buttonMenuStart: Button; 
+
+        let buttonMenuStart: Button;
         let buttonMenu: Button;
         let buttonReplay: Button;
         let buttonA: Button;
         let buttonB: Button;
         let buttonC: Button;
-        
+
         let rectangleMenu: Rectangle;
 
 
@@ -314,34 +316,34 @@ class App {
 
             textblockMenuBest = advancedTexture.getControlByName("TextblockMenuBest") as TextBlock;
             textblockMenuScore = advancedTexture.getControlByName("TextblockMenuScore") as TextBlock;
-            
+
             textblockMenuLink = advancedTexture.getControlByName("TextblockMenuLink") as TextBlock;
-            textblockMenuLink.onPointerUpObservable.add(function(){
+            textblockMenuLink.onPointerUpObservable.add(function () {
                 //window.open("https://fisicagames.com.br")
                 location.href = "https://fisicagames.com.br";
 
             });
 
-            textblockMenuMusic =  advancedTexture.getControlByName("TextblockMenuMusic") as TextBlock;;
-            textblockMenuMusic.onPointerUpObservable.add(function(){
-                if(music.isPlaying){
+            textblockMenuMusic = advancedTexture.getControlByName("TextblockMenuMusic") as TextBlock;;
+            textblockMenuMusic.onPointerUpObservable.add(function () {
+                if (music.isPlaying) {
                     music.stop();
                     musicon = false;
                     textblockMenuMusic.text = "music: off";
                 }
-                else{
+                else {
                     music.play();
                     musicon = true;
                     textblockMenuMusic.text = "music: on";
                 }
             });
 
-           
-           
+
+
             buttonMenuStart = advancedTexture.getControlByName("ButtonMenuStart") as Button;
             rectangleMenu = advancedTexture.getControlByName("RectangleMenu") as Rectangle;
 
-            buttonMenuStart.onPointerUpObservable.add(function(){
+            buttonMenuStart.onPointerUpObservable.add(function () {
                 rectangleMenu.isVisible = false;
                 state = GameState.PositionQuestion;
                 startCube();
@@ -353,7 +355,7 @@ class App {
             });
 
             buttonMenu = advancedTexture.getControlByName("ButtonMenu") as Button;
-            buttonMenu.onPointerUpObservable.add(function(){
+            buttonMenu.onPointerUpObservable.add(function () {
                 rectangleMenu.isVisible = true;
                 state = GameState.StartMenu;
             });
@@ -370,7 +372,7 @@ class App {
 
 
 
-            
+
             let buttonIsCorrect: boolean[] = [false, false, false];
             buttonA = advancedTexture.getControlByName("ButtonA") as Button;
             buttonB = advancedTexture.getControlByName("ButtonB") as Button;
@@ -384,7 +386,7 @@ class App {
 
                 for (let i in buttons) {
                     buttons[i].background = "#C32BADFF";
-                    }
+                }
 
                 switch (order) {
                     case 1:
@@ -407,7 +409,37 @@ class App {
                 }
             }
             shuffleAnswersPosition();
-            //console.log(buttonA.textBlock.text, (x0 / 2).toFixed(0).toString());
+          
+
+            function shuffleAnswersVelocity() {
+
+                const order: number = Math.ceil(Math.random() * 3);
+
+                for (let i in buttons) {
+                    buttons[i].background = "#C32BADFF";
+                }
+
+                switch (order) {
+                    case 1:
+                        buttonA.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2 + 60).toFixed(0).toString();
+                        break;
+                    case 2:
+                        buttonA.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                        break;
+                    case 3:
+                        buttonA.textBlock.text = (x0 / 2 - 60).toFixed(0).toString();
+                        buttonB.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                        buttonC.textBlock.text = (x0 / 2).toFixed(0).toString();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
 
             buttonA.onPointerClickObservable.add(function () {
                 console.log("buttonA", state)
@@ -422,7 +454,7 @@ class App {
             })
 
             function checkAnswersPosition(b: number) {
-                if(state == GameState.PositionQuestion){
+                if (state == GameState.PositionQuestion) {
                     for (let i in buttons) {
                         if (buttons[i].textBlock.text == (x0 / 2).toFixed(0).toString()) {
                             buttons[i].background = "#27b376";
@@ -432,30 +464,32 @@ class App {
                             buttons[i].background = "#bf212f";
                             buttonIsCorrect[i] = false;
                         }
-    
+
                     }
                     if (buttonIsCorrect[b] == true) {
                         score += 1;
                         textBlockScore.text = `Score: ${score}`;
                         textblockMenuScore.text = `Score: ${score}`;
-                        console.log("if", state);
-                        state = GameState.CorrectPositionAnswer;
-                        console.log("if", state);
-                        if(score > bestScore) {
+                        if (score > bestScore) {
                             bestScore = score;
                             textBlockBestScore.text = `Best: ${bestScore}`;
-                            textblockMenuBest.text= `Best: ${bestScore}`;
+                            textblockMenuBest.text = `Best: ${bestScore}`;
                         }
+                        state = GameState.CorrectAnswerPosition;
+                        textBlockTimeTotal.text = "Correct!";
+                        setTimeout(gameController, 1000);
+
+
                     }
-                    else{
-                        state = GameState.IncorrectAnswer;
-                        setTimeout(transitionToStartMenu, 2000);
+                    else {
                         textBlockTimeTotal.text = "Game Over!";
+                        state = GameState.IncorrectAnswer;
+                        setTimeout(gameController, 2000);
 
                     }
                 }
-                
-                
+
+
             }
 
 
@@ -478,7 +512,7 @@ class App {
 
                 scene.render();
 
-                if (timeEnd > 0.5 && state == (GameState.PositionQuestion|| state == GameState.VelocityQuestion) ) {
+                if (timeEnd > 0.5 && state == (GameState.PositionQuestion || state == GameState.VelocityQuestion)) {
                     timeEnd -= engine.getDeltaTime() / 1000;
                     textBlockTimeTotal.text = "Time Left: " + timeEnd.toFixed(0) + " s";
                     cube.position.x += xVelocity * 2 * engine.getDeltaTime() / 1000;
@@ -493,19 +527,19 @@ class App {
                 camera.radius = 54;
                 camera.target = cube.position;
 
-                
+
                 switch (state) {
                     case GameState.PositionQuestion:
                         textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
                         break;
                     case GameState.CorrectVelocityQuestion:
-                        textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = "+(x0 / 2).toFixed(0).toString() +  " +  ?   * " + time.toFixed(1) + "  (S.I.)";
+                        textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " = " + (x0 / 2).toFixed(0).toString() + " +  ?   * " + time.toFixed(1) + "  (S.I.)";
                         break;
                     default:
                         break;
                 }
-                
-                
+
+
                 if (xVelocity > 0) {
                     for (let i in planeMileMarkers) {
                         if (cube.position.x - 200 > planeMileMarkers[i].mesh.position.x) {
