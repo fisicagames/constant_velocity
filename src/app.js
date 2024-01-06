@@ -14,6 +14,7 @@ class App {
         let score = 0;
         let bestScore = 0;
         let musicon = true;
+        let level = 1;
         let GameState;
         (function (GameState) {
             GameState[GameState["StartMenu"] = 0] = "StartMenu";
@@ -75,19 +76,22 @@ class App {
         plane.material = materialPlane;
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
+        let xVelocity = 0;
+        let x0Position, x0 = 0;
+        let zPosition = 0;
         let cube = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
         cube.material = materialCube;
-        cube.position = new Vector3(0, 1, -2);
-        let xVelocity = 0;
-        let x0Position, x0 = 0;
+        cube.position = new Vector3(0, 1, zPosition);
         function startCube() {
-            xVelocity = (1 + Math.floor(Math.random() * 5));
+            xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(-.5 + Math.random());
+            xVelocity < 0 ? zPosition = +2 : zPosition = -2;
             x0 = (-20 + Math.random() * 40);
             x0Position = Math.round(x0) * 20;
             x0 = x0 * 20;
             cube.position.x = x0;
+            cube.position.z = zPosition;
         }
         camera.target = cube.position;
         const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);
@@ -227,8 +231,10 @@ class App {
                             break;
                         case GameState.CorrectAnswerPosition:
                             shuffleAnswersVelocity();
-                            textblockQuestion.text = `What is the constant velocity v0?`;
+                            textblockQuestion.text = `What is the constant velocity v?`;
                             state = GameState.VelocityQuestion;
+                            if (score <= 28)
+                                level = score;
                             break;
                         case GameState.CorrectAnswerVelocity:
                             startCube();
@@ -238,13 +244,14 @@ class App {
                             state = GameState.PositionQuestion;
                             break;
                         case GameState.StartMenu:
+                            score = 0;
+                            level = 1;
+                            textBlockScore.text = `Score: ${score}`;
+                            timeEnd = 60;
+                            textblockQuestion.text = `What is the initial position s0?`;
                             startCube();
                             updateMilesLinesPosition();
                             shuffleAnswersPosition();
-                            textblockQuestion.text = `What is the initial position s0?`;
-                            score = 0;
-                            textBlockScore.text = `Score: ${score}`;
-                            timeEnd = 60;
                             rectangleMenu.isVisible = false;
                             state = GameState.PositionQuestion;
                             break;
@@ -307,17 +314,17 @@ class App {
                     switch (order) {
                         case 1:
                             buttonA.textBlock.text = (x0 / 2).toFixed(0).toString();
-                            buttonB.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
-                            buttonC.textBlock.text = (x0 / 2 + 60).toFixed(0).toString();
+                            buttonB.textBlock.text = (x0 / 2 + 30 - level).toFixed(0).toString();
+                            buttonC.textBlock.text = (x0 / 2 + 60 - level * 2).toFixed(0).toString();
                             break;
                         case 2:
-                            buttonA.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                            buttonA.textBlock.text = (x0 / 2 - (30 - level)).toFixed(0).toString();
                             buttonB.textBlock.text = (x0 / 2).toFixed(0).toString();
-                            buttonC.textBlock.text = (x0 / 2 + 30).toFixed(0).toString();
+                            buttonC.textBlock.text = (x0 / 2 + 30 - level).toFixed(0).toString();
                             break;
                         case 3:
-                            buttonA.textBlock.text = (x0 / 2 - 60).toFixed(0).toString();
-                            buttonB.textBlock.text = (x0 / 2 - 30).toFixed(0).toString();
+                            buttonA.textBlock.text = (x0 / 2 - (60 / level)).toFixed(0).toString();
+                            buttonB.textBlock.text = (x0 / 2 - (30 - level)).toFixed(0).toString();
                             buttonC.textBlock.text = (x0 / 2).toFixed(0).toString();
                             break;
                         default:
@@ -333,17 +340,17 @@ class App {
                     switch (order) {
                         case 1:
                             buttonA.textBlock.text = (xVelocity).toFixed(0).toString();
-                            buttonB.textBlock.text = (xVelocity + 10).toFixed(0).toString();
-                            buttonC.textBlock.text = (xVelocity + 20).toFixed(0).toString();
+                            buttonB.textBlock.text = (xVelocity + 9 - level / 4).toFixed(0).toString();
+                            buttonC.textBlock.text = (xVelocity + 18 - level / 2).toFixed(0).toString();
                             break;
                         case 2:
-                            buttonA.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                            buttonA.textBlock.text = (xVelocity - (9 - level / 4)).toFixed(0).toString();
                             buttonB.textBlock.text = (xVelocity).toFixed(0).toString();
-                            buttonC.textBlock.text = (xVelocity + 10).toFixed(0).toString();
+                            buttonC.textBlock.text = (xVelocity + 18 - level / 2).toFixed(0).toString();
                             break;
                         case 3:
-                            buttonA.textBlock.text = (xVelocity - 20).toFixed(0).toString();
-                            buttonB.textBlock.text = (xVelocity - 10).toFixed(0).toString();
+                            buttonA.textBlock.text = (xVelocity - (18 - level / 4)).toFixed(0).toString();
+                            buttonB.textBlock.text = (xVelocity - (9 - level / 2)).toFixed(0).toString();
                             buttonC.textBlock.text = (xVelocity).toFixed(0).toString();
                             break;
                         default:
@@ -443,9 +450,10 @@ class App {
                         setTimeout(gameController, 2000);
                     }
                     plane.position.x = cube.position.x;
-                    camera.position = new Vector3(cube.position.x - 4, 3, -4);
+                    camera.position = new Vector3(cube.position.x - 4, 3, cube.position.z - 2);
                     camera.radius = 54;
-                    camera.target = cube.position;
+                    camera.target = new Vector3(cube.position.x, cube.position.y, cube.position.z);
+                    ;
                     switch (state) {
                         case GameState.PositionQuestion:
                             textBlockEquation.text = (cube.position.x / 2).toFixed(1).toString() + " =  ?  +  ?   * " + time.toFixed(1) + "  (S.I.)";
@@ -459,13 +467,22 @@ class App {
                         default:
                             break;
                     }
-                    if (xVelocity > 0) {
-                        for (let i in planeMileMarkers) {
+                    for (let i in planeMileMarkers) {
+                        if (xVelocity > 0) {
                             if (cube.position.x - 200 > planeMileMarkers[i].mesh.position.x) {
                                 planeMileMarkers[i].dispose();
                                 planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
                                 planeCentreLines[i].mesh.position.x = lastMileMarkerPosition * 2;
                                 lastMileMarkerPosition += 10;
+                            }
+                        }
+                        else {
+                            if (cube.position.x + 200 < planeMileMarkers[i].mesh.position.x) {
+                                planeMileMarkers[i].dispose();
+                                -lastMileMarkerPosition;
+                                planeMileMarkers[i] = new PlaneMileMarker(lastMileMarkerPosition);
+                                planeCentreLines[i].mesh.position.x = lastMileMarkerPosition * 2;
+                                lastMileMarkerPosition -= 10;
                             }
                         }
                     }
