@@ -1,13 +1,13 @@
 //CONSTANT VELOCITY GAME (C) 2024 by Rafael João Ribeiro - IFPR - http://www.fisicagames.com.br
 //see todos in the code and:  
-//1. Add ./ in index.html
-//2. remove import inspector and debugLayer before build
-//3. change equation.png path to ./assets/gui/equation.png
+//1. remove import inspector and debugLayer before build
+//2. change equation.png path to ./assets/gui/equation.png
+//3. Add ./ in index.html
 
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-import "@babylonjs/inspector";
+//import "@babylonjs/inspector";
 
 import "@babylonjs/loaders";
 
@@ -23,7 +23,7 @@ import {
 } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#32
+//GUI: https://gui.babylonjs.com/#HEG7HH#33
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/
@@ -85,7 +85,7 @@ class App {
 
 
         
-        scene.clearColor = Color4.FromHexString("#8ADAB2"); //AAD9BB
+        scene.clearColor = Color4.FromHexString("#58D596FF"); //AAD9BB
 
         ////////////////////////////////
 
@@ -154,14 +154,16 @@ class App {
         let zPosition: number = 0;
 
 
-        let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
+        //let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
+        let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 2, height: 2, depth: 1 }, scene);
+
 
         let car: TransformNode;
 
 
-        const materialCube = new StandardMaterial("cubeMaterial", scene);
-        materialCube.diffuseColor = new Color3(1, 0.2, 1);
-        cube.material = materialCube;
+        //const materialCube = new StandardMaterial("cubeMaterial", scene);
+        //materialCube.diffuseColor = new Color3(1, 0.2, 1);
+        //cube.material = materialCube;
 
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
@@ -172,7 +174,7 @@ class App {
             car.position.y = -1;
             //car.position.z = 0.4;
             car.rotation.y = Math.PI / 2;
-            cube.isVisible = false;
+            cube.isVisible = true;
 
 
             cube.position = new Vector3(0, 1, zPosition);
@@ -247,7 +249,7 @@ class App {
             let tree1 = new Tree(10);
 
             const createTrees = function(){
-                for (let i = -600; i < 600; i +=10){
+                for (let i = -400; i < 400; i +=10){
                     let tree1 = new Tree(i);
                     trees.push(tree1);
                 }
@@ -288,9 +290,15 @@ class App {
 
             const planeMileMarkers: PlaneMileMarker[] = [];
 
+            const materialPost = new StandardMaterial("materialPost", scene);
+            materialPost.diffuseColor = new Color3(0.9, 0.9, 0.9);
+
+
             class PlaneMileMarker {
 
                 mesh: Mesh;
+                meshPostRight: Mesh;
+                meshPostLeft: Mesh;
                 tempDynamicTexture: DynamicTexture;
                 dynamicTexture: DynamicTexture;
                 mat: StandardMaterial;
@@ -298,10 +306,22 @@ class App {
 
                 constructor(xPosition = 0) {
                     this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
+                    this.meshPostRight = MeshBuilder.CreatePlane(`meshPostRight ${xPosition}`, { width: 0.5, height: 2 }, scene);
+                    this.meshPostRight.material = materialPost;
+                    this.meshPostLeft = MeshBuilder.CreatePlane(`meshPostLeft ${xPosition}`, { width: 0.5, height: 2 }, scene);
+                    this.meshPostLeft.material = materialPost;
+
                     this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                     this.mesh.rotation.y = Math.PI / 2.5;
-
                     this.mesh.parent = planeMileMarkerNode;
+
+                    this.meshPostRight.position = new Vector3(xPosition * 2+0.8, 2.1, 4.4);
+                    this.meshPostRight.rotation.y = Math.PI / 2.5;
+                    this.meshPostRight.parent = planeMileMarkerNode;
+
+                    this.meshPostLeft.position = new Vector3(xPosition * 2+0.1, 2, 8);
+                    this.meshPostLeft.rotation.y = Math.PI / 2.5;
+                    this.meshPostLeft.parent = planeMileMarkerNode;
 
                     const font_size: number = 48;
                     const font: string = "normal " + font_size + "px Arial";

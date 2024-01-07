@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import "@babylonjs/loaders";
+import "@babylonjs/inspector";
 import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode, SceneLoader } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
 class App {
@@ -47,7 +47,8 @@ class App {
         engine.displayLoadingUI();
         const scene = new Scene(engine);
         SceneLoader.Append("./assets/models/", "car.gltf", scene);
-        scene.clearColor = Color4.FromHexString("#1DB9C3");
+        SceneLoader.Append("./assets/models/", "tree.gltf", scene);
+        scene.clearColor = Color4.FromHexString("#58D596FF");
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
             autoplay: false,
@@ -127,6 +128,39 @@ class App {
             let buttonB;
             let buttonC;
             let rectangleMenu;
+            const trees = [];
+            let tree0 = scene.getTransformNodeByName("tree");
+            tree0.position = new Vector3(0, 2, -10);
+            class Tree {
+                constructor(x) {
+                    Object.defineProperty(this, "tree", {
+                        enumerable: true,
+                        configurable: true,
+                        writable: true,
+                        value: void 0
+                    });
+                    Object.defineProperty(this, "x", {
+                        enumerable: true,
+                        configurable: true,
+                        writable: true,
+                        value: void 0
+                    });
+                    this.tree = tree0.instantiateHierarchy();
+                    this.tree.position = new Vector3(x - 10, 2, 12 * Math.sign(Math.random() - 0.5));
+                    this.tree.scaling.y = 0.75 + Math.random();
+                }
+                dispose() {
+                    this.tree.dispose();
+                }
+            }
+            let tree1 = new Tree(10);
+            const createTrees = function () {
+                for (let i = -400; i < 400; i += 10) {
+                    let tree1 = new Tree(i);
+                    trees.push(tree1);
+                }
+            };
+            createTrees();
             const planeCentreNode = new TransformNode("planeCentreNode");
             const planeCentreLines = [];
             const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
@@ -157,9 +191,23 @@ class App {
             }
             const planeMileMarkerNode = new TransformNode("planeMileMarkerNode");
             const planeMileMarkers = [];
+            const materialPost = new StandardMaterial("materialPost", scene);
+            materialPost.diffuseColor = new Color3(0.9, 0.9, 0.9);
             class PlaneMileMarker {
                 constructor(xPosition = 0) {
                     Object.defineProperty(this, "mesh", {
+                        enumerable: true,
+                        configurable: true,
+                        writable: true,
+                        value: void 0
+                    });
+                    Object.defineProperty(this, "meshPostRight", {
+                        enumerable: true,
+                        configurable: true,
+                        writable: true,
+                        value: void 0
+                    });
+                    Object.defineProperty(this, "meshPostLeft", {
                         enumerable: true,
                         configurable: true,
                         writable: true,
@@ -190,9 +238,19 @@ class App {
                         value: void 0
                     });
                     this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
+                    this.meshPostRight = MeshBuilder.CreatePlane(`meshPostRight ${xPosition}`, { width: 0.5, height: 2 }, scene);
+                    this.meshPostRight.material = materialPost;
+                    this.meshPostLeft = MeshBuilder.CreatePlane(`meshPostLeft ${xPosition}`, { width: 0.5, height: 2 }, scene);
+                    this.meshPostLeft.material = materialPost;
                     this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                     this.mesh.rotation.y = Math.PI / 2.5;
                     this.mesh.parent = planeMileMarkerNode;
+                    this.meshPostRight.position = new Vector3(xPosition * 2 + 0.8, 2.1, 4.4);
+                    this.meshPostRight.rotation.y = Math.PI / 2.5;
+                    this.meshPostRight.parent = planeMileMarkerNode;
+                    this.meshPostLeft.position = new Vector3(xPosition * 2 + 0.1, 2, 8);
+                    this.meshPostLeft.rotation.y = Math.PI / 2.5;
+                    this.meshPostLeft.parent = planeMileMarkerNode;
                     const font_size = 48;
                     const font = "normal " + font_size + "px Arial";
                     const planeHeight = 4;
