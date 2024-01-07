@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import "@babylonjs/inspector";
+import "@babylonjs/loaders";
 import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode, SceneLoader } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
 class App {
@@ -46,8 +46,7 @@ class App {
         const engine = new Engine(canvas, true);
         engine.displayLoadingUI();
         const scene = new Scene(engine);
-        SceneLoader.Append("./assets/models/", "car.gltf", scene);
-        SceneLoader.Append("./assets/models/", "tree.gltf", scene);
+        SceneLoader.Append("./assets/models/", "models.gltf", scene);
         scene.clearColor = Color4.FromHexString("#58D596FF");
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
@@ -88,18 +87,15 @@ class App {
         let xVelocity = 0;
         let x0Position, x0 = 0;
         let zPosition = 0;
-        let cube = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
+        let cube = MeshBuilder.CreateBox('cube', { width: 2, height: 2, depth: 1 }, scene);
         let car;
-        const materialCube = new StandardMaterial("cubeMaterial", scene);
-        materialCube.diffuseColor = new Color3(1, 0.2, 1);
-        cube.material = materialCube;
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
-            car.parent = cube;
             car.position.y = -1;
             car.rotation.y = Math.PI / 2;
-            cube.isVisible = false;
             cube.position = new Vector3(0, 1, zPosition);
+            car.parent = cube;
+            cube.isVisible = false;
             function startCube() {
                 xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
                 xVelocity < 0 ? zPosition = +2.3 : zPosition = -2.6;

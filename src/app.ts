@@ -79,9 +79,10 @@ class App {
         const engine = new Engine(canvas, true);
         engine.displayLoadingUI();
         const scene = new Scene(engine);
+        
 
-        SceneLoader.Append("./assets/models/", "car.gltf", scene);
-        SceneLoader.Append("./assets/models/", "tree.gltf", scene);
+        SceneLoader.Append("./assets/models/", "models.gltf", scene);
+
 
 
         
@@ -166,18 +167,20 @@ class App {
         //cube.material = materialCube;
 
         scene.executeWhenReady(() => {
+
             car = scene.getTransformNodeByName("car");
 
 
 
-            car.parent = cube;
             car.position.y = -1;
             //car.position.z = 0.4;
             car.rotation.y = Math.PI / 2;
-            cube.isVisible = true;
-
 
             cube.position = new Vector3(0, 1, zPosition);
+            car.parent = cube;
+
+            cube.isVisible = false;
+
 
 
             function startCube() {
