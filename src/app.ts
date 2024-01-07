@@ -84,8 +84,8 @@ class App {
         SceneLoader.Append("./assets/models/", "tree.gltf", scene);
 
 
-
-        scene.clearColor = Color4.FromHexString("#1DB9C3");
+        
+        scene.clearColor = Color4.FromHexString("#8ADAB2"); //AAD9BB
 
         ////////////////////////////////
 
@@ -155,17 +155,17 @@ class App {
 
 
         let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
-        
+
         let car: TransformNode;
-       
+
 
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
         cube.material = materialCube;
-        
+
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
-            
+
 
 
             car.parent = cube;
@@ -179,9 +179,9 @@ class App {
 
 
             function startCube() {
-                xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random()-0.5);
+                xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
                 xVelocity < 0 ? zPosition = +2.3 : zPosition = -2.6;
-                xVelocity < 0 ? cube.rotation = new Vector3(0,Math.PI,0): cube.rotation = new Vector3(0,0,0);
+                xVelocity < 0 ? cube.rotation = new Vector3(0, Math.PI, 0) : cube.rotation = new Vector3(0, 0, 0);
                 x0 = (-9 + Math.random() * 18);
                 x0Position = Math.round(x0) * 20;
                 x0 = x0 * 20;
@@ -218,30 +218,42 @@ class App {
             ////////////////////////////////
 
             const trees: Tree[] = [];
-            const trees1: Tree[] = [];
+
 
             let tree0: TransformNode = scene.getTransformNodeByName("tree");
-            tree0.position = new Vector3(0,2,-10);
+            tree0.position = new Vector3(0, 2, -10);
 
-  
-            
-            
+
+
+
             class Tree {
                 tree: TransformNode;
                 x: number;
-            
-                constructor(x: number){
+
+                constructor(x: number) {
 
                     this.tree = tree0.instantiateHierarchy();
 
-                    this.tree.position = new Vector3(x-10, 2, 12 *Math.sign(Math.random()-0.5));
-                    this.tree.scaling.y = 0.75 + Math.random(); 
+                    this.tree.position = new Vector3(x - 10, 2, 12 * Math.sign(Math.random() - 0.5));
+                    this.tree.scaling.y = 0.75 + Math.random();
 
                 }
-                dispose(){
+                dispose() {
                     this.tree.dispose();
                 }
             }
+
+      
+            let tree1 = new Tree(10);
+
+            const createTrees = function(){
+                for (let i = -600; i < 600; i +=10){
+                    let tree1 = new Tree(i);
+                    trees.push(tree1);
+                }
+            }
+            createTrees();
+
             ////////////////////////
 
             const planeCentreNode = new TransformNode("planeCentreNode");
@@ -335,23 +347,10 @@ class App {
 
 
             const createMilesLines = function () {
-                console.log("createMilesLines");
                 for (let i = x0Position - 100; i < x0Position + 100; i += 10) {
                     let planeMileMarker = new PlaneMileMarker(i);
                     planeMileMarkers.push(planeMileMarker);
-                    
-                    console.log("planeMileMarkers x "+i+" ",planeMileMarker.mesh.position.x)
-
                     lastMileMarkerPosition = i;
-
-                    let tree = new Tree(i*2);
-                    let tree1 = new Tree(i*2+10);
-                    trees.push(tree);
-                    trees1.push(tree1)
-                    console.log("tree x "+i+" ", tree.tree.position.x);
-                    
-
-
                     let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
                     planeCentreLines.push(planeCentreLine);
                     //lastCentreLinePosition = i *2;
@@ -368,13 +367,9 @@ class App {
 
                     planeMileMarkers[i].dispose();
                     planeCentreLines[i].dispose();
-                    trees[i].dispose();
-                    trees1[i].dispose();
 
-  
                 }
-                trees.length = 0;
-                trees1.length = 0;
+
                 planeMileMarkers.length = 0;
                 planeCentreLines.length = 0;
                 createMilesLines();
