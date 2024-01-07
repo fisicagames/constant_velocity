@@ -7,7 +7,7 @@
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-//import "@babylonjs/inspector";
+import "@babylonjs/inspector";
 
 import "@babylonjs/loaders";
 
@@ -81,6 +81,8 @@ class App {
         const scene = new Scene(engine);
 
         SceneLoader.Append("./assets/models/", "car.gltf", scene);
+        SceneLoader.Append("./assets/models/", "tree.gltf", scene);
+
 
 
         scene.clearColor = Color4.FromHexString("#1DB9C3");
@@ -155,6 +157,7 @@ class App {
         let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         
         let car: TransformNode;
+       
 
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
@@ -162,6 +165,8 @@ class App {
         
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
+            
+
 
             car.parent = cube;
             car.position.y = -1;
@@ -211,6 +216,33 @@ class App {
 
 
             ////////////////////////////////
+
+            const trees: Tree[] = [];
+            const trees1: Tree[] = [];
+
+            let tree0: TransformNode = scene.getTransformNodeByName("tree");
+            tree0.position = new Vector3(0,2,-10);
+
+  
+            
+            
+            class Tree {
+                tree: TransformNode;
+                x: number;
+            
+                constructor(x: number){
+
+                    this.tree = tree0.instantiateHierarchy();
+
+                    this.tree.position = new Vector3(x-10, 2, 12 *Math.sign(Math.random()-0.5));
+                    this.tree.scaling.y = 0.75 + Math.random(); 
+
+                }
+                dispose(){
+                    this.tree.dispose();
+                }
+            }
+            ////////////////////////
 
             const planeCentreNode = new TransformNode("planeCentreNode");
 
@@ -301,11 +333,23 @@ class App {
 
             let lastMileMarkerPosition: number = 0;
 
+
             const createMilesLines = function () {
+                console.log("createMilesLines");
                 for (let i = x0Position - 100; i < x0Position + 100; i += 10) {
                     let planeMileMarker = new PlaneMileMarker(i);
                     planeMileMarkers.push(planeMileMarker);
+                    
+                    console.log("planeMileMarkers x "+i+" ",planeMileMarker.mesh.position.x)
+
                     lastMileMarkerPosition = i;
+
+                    let tree = new Tree(i*2);
+                    let tree1 = new Tree(i*2+10);
+                    trees.push(tree);
+                    trees1.push(tree1)
+                    console.log("tree x "+i+" ", tree.tree.position.x);
+                    
 
 
                     let planeCentreLine: PlaneCentreLine = new PlaneCentreLine(i * 2);
@@ -324,7 +368,13 @@ class App {
 
                     planeMileMarkers[i].dispose();
                     planeCentreLines[i].dispose();
+                    trees[i].dispose();
+                    trees1[i].dispose();
+
+  
                 }
+                trees.length = 0;
+                trees1.length = 0;
                 planeMileMarkers.length = 0;
                 planeCentreLines.length = 0;
                 createMilesLines();
