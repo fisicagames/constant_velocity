@@ -87,8 +87,11 @@ class App {
         let xVelocity = 0;
         let x0Position, x0 = 0;
         let zPosition = 0;
-        let cube = MeshBuilder.CreateBox('cube', { width: 2, height: 2, depth: 1 }, scene);
+        let cube = MeshBuilder.CreateBox('cube', { width: 3.5, height: 2, depth: 1 }, scene);
         let car;
+        const materialCube = new StandardMaterial("cubeMaterial", scene);
+        materialCube.diffuseColor = new Color3(1, 0.2, 1);
+        cube.material = materialCube;
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
             car.position.y = -1;
@@ -104,7 +107,6 @@ class App {
                 x0 = x0 * 20;
                 cube.position.x = x0;
                 cube.position.z = zPosition;
-                car.parent = cube;
             }
             camera.target = cube.position;
             const advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("GUI", true, scene);

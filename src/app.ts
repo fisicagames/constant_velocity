@@ -3,6 +3,7 @@
 //1. remove import inspector and debugLayer before build
 //2. change equation.png path to ./assets/gui/equation.png
 //3. Add ./ in index.html
+//4. Remove //* lines
 
 
 //import "@babylonjs/core/Debug/debugLayer";
@@ -156,15 +157,15 @@ class App {
 
 
         //let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
-        let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 2, height: 2, depth: 1 }, scene);
+        let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 3.5, height: 2, depth: 1 }, scene);
 
 
         let car: TransformNode;
 
 
-        //const materialCube = new StandardMaterial("cubeMaterial", scene);
-        //materialCube.diffuseColor = new Color3(1, 0.2, 1);
-        //cube.material = materialCube;
+        const materialCube = new StandardMaterial("cubeMaterial", scene);
+        materialCube.diffuseColor = new Color3(1, 0.2, 1);
+        cube.material = materialCube;
 
         scene.executeWhenReady(() => {
 
@@ -179,7 +180,7 @@ class App {
             cube.position = new Vector3(0, 1, zPosition);
             car.parent = cube;
 
-            
+
 
 
             function startCube() {
@@ -191,6 +192,8 @@ class App {
                 x0 = x0 * 20;
                 cube.position.x = x0;
                 cube.position.z = zPosition;
+                
+
             }
 
 
@@ -730,6 +733,7 @@ class App {
 
                         }
                     }
+                    
                 });
 
             }
