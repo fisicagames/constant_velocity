@@ -7,7 +7,9 @@
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-import "@babylonjs/inspector";
+//import "@babylonjs/inspector";
+
+import "@babylonjs/loaders";
 
 import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
@@ -21,7 +23,7 @@ import {
 } from "@babylonjs/gui";
 
 //Color Palette: https://colorhunt.co/palette/1db9c37027a0c32badf56fad
-//GUI: https://gui.babylonjs.com/#HEG7HH#30
+//GUI: https://gui.babylonjs.com/#HEG7HH#32
 //Mobile Simulator: https://chromewebstore.google.com/detail/mobile-simulator-responsi/ckejmhbmlajgoklhgbapkiccekfoccmk
 //Music1: https://pixabay.com/pt/music/pop-positive-way-124550/
 //Music2: https://pixabay.com/pt/music/musicas-felizes-para-criancas-first-steps-141242/

@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import "@babylonjs/inspector";
+import "@babylonjs/loaders";
 import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode, SceneLoader } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
 class App {
