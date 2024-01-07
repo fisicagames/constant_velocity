@@ -179,7 +179,7 @@ class App {
             cube.position = new Vector3(0, 1, zPosition);
             car.parent = cube;
 
-            
+
 
 
             function startCube() {
@@ -191,6 +191,9 @@ class App {
                 x0 = x0 * 20;
                 cube.position.x = x0;
                 cube.position.z = zPosition;
+                car.parent = cube;
+
+
             }
 
 
