@@ -46,7 +46,7 @@ class App {
         const engine = new Engine(canvas, true);
         engine.displayLoadingUI();
         const scene = new Scene(engine);
-        SceneLoader.Append("./assets/models/", "models.gltf", scene);
+        SceneLoader.Append("./assets/models/", "models.glb", scene);
         scene.clearColor = Color4.FromHexString("#58D596FF");
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
