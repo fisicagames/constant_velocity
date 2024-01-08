@@ -5,10 +5,10 @@
 //3. Add ./ in index.html
 //4. Remove //* lines
 
-
 //import "@babylonjs/core/Debug/debugLayer";
+//import "@babylonjs/inspector";
 
-import "@babylonjs/inspector";
+////////////////////////////////////////////////////////////////
 
 import "@babylonjs/loaders";
 
@@ -457,6 +457,7 @@ class App {
                             level = 1;
                             textBlockScore.text = `Score: ${score}`;
                             timeEnd = 60;
+                            time = 0;
                             textblockQuestion.text = `What is the initial position s0?`
                             startCube();
                             updateMilesLinesPosition();

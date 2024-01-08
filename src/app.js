@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import "@babylonjs/loaders";
-import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode, SceneLoader } from "@babylonjs/core";
+import { Engine, Scene, Color4, Color3, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Sound, DynamicTexture, TransformNode, SceneLoader, ScenePerformancePriority } from "@babylonjs/core";
 import { AdvancedDynamicTexture } from "@babylonjs/gui";
 class App {
     constructor() {
@@ -46,7 +46,10 @@ class App {
         const engine = new Engine(canvas, true);
         engine.displayLoadingUI();
         const scene = new Scene(engine);
-        SceneLoader.Append("./assets/models/", "models.glb", scene);
+        scene.skipPointerMovePicking = true;
+        scene.getAnimationRatio();
+        scene.performancePriority = ScenePerformancePriority.BackwardCompatible;
+        SceneLoader.Append("./assets/models/", "models.gltf", scene);
         scene.clearColor = Color4.FromHexString("#58D596FF");
         const music = new Sound("Music", "./assets/sounds/first-steps-141242_compress.mp3", scene, soundReady, {
             loop: true,
@@ -75,12 +78,15 @@ class App {
         let plane = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
         const materialPlane = new StandardMaterial("planoMaterial", scene);
         materialPlane.diffuseColor = new Color3(0.7, 0.7, 0.8);
+        materialPlane.freeze;
         plane.material = materialPlane;
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
         let planeWhite = MeshBuilder.CreatePlane('plane', { width: 200, height: 11 }, scene);
+        planeWhite.doNotSyncBoundingInfo = true;
         const materialPlaneWhite = new StandardMaterial("materialPlaneWhite", scene);
         materialPlaneWhite.diffuseColor = new Color3(1, 1, 1);
+        materialPlaneWhite.freeze;
         planeWhite.material = materialPlaneWhite;
         planeWhite.parent = plane;
         planeWhite.position = new Vector3(0, 0, 0.05);
@@ -88,9 +94,11 @@ class App {
         let x0Position, x0 = 0;
         let zPosition = 0;
         let cube = MeshBuilder.CreateBox('cube', { width: 3.5, height: 2, depth: 1 }, scene);
+        cube.doNotSyncBoundingInfo = true;
         let car;
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
+        materialCube.freeze;
         cube.material = materialCube;
         scene.executeWhenReady(() => {
             car = scene.getTransformNodeByName("car");
@@ -99,7 +107,7 @@ class App {
             cube.position = new Vector3(0, 1, zPosition);
             car.parent = cube;
             function startCube() {
-                xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
+                xVelocity = (15 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
                 xVelocity < 0 ? zPosition = +2.3 : zPosition = -2.6;
                 xVelocity < 0 ? cube.rotation = new Vector3(0, Math.PI, 0) : cube.rotation = new Vector3(0, 0, 0);
                 x0 = (-9 + Math.random() * 18);
@@ -129,6 +137,7 @@ class App {
             const trees = [];
             let tree0 = scene.getTransformNodeByName("tree");
             tree0.position = new Vector3(0, 2, -10);
+            tree0.freezeWorldMatrix();
             class Tree {
                 constructor(x) {
                     Object.defineProperty(this, "tree", {
@@ -146,6 +155,7 @@ class App {
                     this.tree = tree0.instantiateHierarchy();
                     this.tree.position = new Vector3(x - 10, 2, 12 * Math.sign(Math.random() - 0.5));
                     this.tree.scaling.y = 0.75 + Math.random();
+                    this.tree.freezeWorldMatrix();
                 }
                 dispose() {
                     this.tree.dispose();
@@ -163,6 +173,7 @@ class App {
             const planeCentreLines = [];
             const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
             materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
+            materialPlaneCentreLine.freeze;
             class PlaneCentreLine {
                 constructor(x) {
                     Object.defineProperty(this, "mesh", {
@@ -191,6 +202,7 @@ class App {
             const planeMileMarkers = [];
             const materialPost = new StandardMaterial("materialPost", scene);
             materialPost.diffuseColor = new Color3(0.9, 0.9, 0.9);
+            materialPost.freeze;
             class PlaneMileMarker {
                 constructor(xPosition = 0) {
                     Object.defineProperty(this, "mesh", {
@@ -236,10 +248,13 @@ class App {
                         value: void 0
                     });
                     this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
+                    this.mesh.doNotSyncBoundingInfo = true;
                     this.meshPostRight = MeshBuilder.CreatePlane(`meshPostRight ${xPosition}`, { width: 0.5, height: 2 }, scene);
                     this.meshPostRight.material = materialPost;
+                    this.meshPostRight.doNotSyncBoundingInfo = true;
                     this.meshPostLeft = MeshBuilder.CreatePlane(`meshPostLeft ${xPosition}`, { width: 0.5, height: 2 }, scene);
                     this.meshPostLeft.material = materialPost;
+                    this.meshPostLeft.doNotSyncBoundingInfo = true;
                     this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                     this.mesh.rotation.y = Math.PI / 2.5;
                     this.mesh.parent = planeMileMarkerNode;
@@ -263,6 +278,7 @@ class App {
                     this.dynamicTexture = new DynamicTexture(`DynamicTexture${xPosition}`, { width: DTWidth, height: DTHeight }, scene, false);
                     this.mat = new StandardMaterial(`mat${xPosition}`, scene);
                     this.mat.diffuseTexture = this.dynamicTexture;
+                    this.mat.freeze;
                     this.dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
                     this.mesh.material = this.mat;
                 }
@@ -320,6 +336,7 @@ class App {
                                 level = 1;
                                 textBlockScore.text = `Score: ${score}`;
                                 timeEnd = 60;
+                                time = 0;
                                 textblockQuestion.text = `What is the initial position s0?`;
                                 startCube();
                                 updateMilesLinesPosition();
