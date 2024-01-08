@@ -8,7 +8,7 @@
 
 //import "@babylonjs/core/Debug/debugLayer";
 
-//import "@babylonjs/inspector";
+import "@babylonjs/inspector";
 
 import "@babylonjs/loaders";
 
@@ -16,7 +16,7 @@ import {
     Engine, Scene, Color4, Color3, ArcRotateCamera,
     Vector3, HemisphericLight, Mesh, MeshBuilder,
     StandardMaterial, Sound, DynamicTexture, TransformNode,
-    SceneLoader
+    SceneLoader, ScenePerformancePriority
 } from "@babylonjs/core";
 import {
     AdvancedDynamicTexture, TextBlock, Button,
@@ -80,6 +80,13 @@ class App {
         const engine = new Engine(canvas, true);
         engine.displayLoadingUI();
         const scene = new Scene(engine);
+        scene.skipPointerMovePicking = true;
+        scene.getAnimationRatio();
+        scene.performancePriority = ScenePerformancePriority.BackwardCompatible;
+        
+
+        
+
         
 
         SceneLoader.Append("./assets/models/", "models.gltf", scene);
@@ -127,14 +134,18 @@ class App {
         let plane: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 10 }, scene);
         const materialPlane = new StandardMaterial("planoMaterial", scene);
         materialPlane.diffuseColor = new Color3(0.7, 0.7, 0.8);
+        materialPlane.freeze;
         plane.material = materialPlane;
         plane.position = new Vector3(0, 0, 0);
         plane.rotation.x = Math.PI / 2;
 
 
+
         let planeWhite: Mesh = MeshBuilder.CreatePlane('plane', { width: 200, height: 11 }, scene);
+        planeWhite.doNotSyncBoundingInfo = true;
         const materialPlaneWhite = new StandardMaterial("materialPlaneWhite", scene);
         materialPlaneWhite.diffuseColor = new Color3(1, 1, 1);
+        materialPlaneWhite.freeze;
         planeWhite.material = materialPlaneWhite;
 
         //planeWhite.rotation.x = Math.PI / 2;
@@ -158,6 +169,7 @@ class App {
 
         //let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 4, height: 2, depth: 2 }, scene);
         let cube: Mesh = MeshBuilder.CreateBox('cube', { width: 3.5, height: 2, depth: 1 }, scene);
+        cube.doNotSyncBoundingInfo = true;
 
 
         let car: TransformNode;
@@ -165,7 +177,9 @@ class App {
 
         const materialCube = new StandardMaterial("cubeMaterial", scene);
         materialCube.diffuseColor = new Color3(1, 0.2, 1);
+        materialCube.freeze;
         cube.material = materialCube;
+        
 
         scene.executeWhenReady(() => {
 
@@ -184,7 +198,7 @@ class App {
 
 
             function startCube() {
-                xVelocity = (1 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
+                xVelocity = (15 + score + Math.floor(Math.random() * 5)) * Math.sign(Math.random() - 0.5);
                 xVelocity < 0 ? zPosition = +2.3 : zPosition = -2.6;
                 xVelocity < 0 ? cube.rotation = new Vector3(0, Math.PI, 0) : cube.rotation = new Vector3(0, 0, 0);
                 x0 = (-9 + Math.random() * 18);
@@ -229,6 +243,7 @@ class App {
 
             let tree0: TransformNode = scene.getTransformNodeByName("tree");
             tree0.position = new Vector3(0, 2, -10);
+            tree0.freezeWorldMatrix();
 
 
 
@@ -243,6 +258,8 @@ class App {
 
                     this.tree.position = new Vector3(x - 10, 2, 12 * Math.sign(Math.random() - 0.5));
                     this.tree.scaling.y = 0.75 + Math.random();
+                    this.tree.freezeWorldMatrix();
+                    
 
                 }
                 dispose() {
@@ -268,6 +285,7 @@ class App {
             const planeCentreLines: PlaneCentreLine[] = [];
             const materialPlaneCentreLine = new StandardMaterial("materialPlaneCentreLine", scene);
             materialPlaneCentreLine.diffuseColor = new Color3(1, 1, 0);
+            materialPlaneCentreLine.freeze;
 
             class PlaneCentreLine {
                 mesh: Mesh;
@@ -297,6 +315,7 @@ class App {
 
             const materialPost = new StandardMaterial("materialPost", scene);
             materialPost.diffuseColor = new Color3(0.9, 0.9, 0.9);
+            materialPost.freeze;
 
 
             class PlaneMileMarker {
@@ -311,10 +330,13 @@ class App {
 
                 constructor(xPosition = 0) {
                     this.mesh = MeshBuilder.CreatePlane(`planeMileMarker ${xPosition}`, { width: 5, height: 3 }, scene);
+                    this.mesh.doNotSyncBoundingInfo = true;
                     this.meshPostRight = MeshBuilder.CreatePlane(`meshPostRight ${xPosition}`, { width: 0.5, height: 2 }, scene);
                     this.meshPostRight.material = materialPost;
+                    this.meshPostRight.doNotSyncBoundingInfo = true;
                     this.meshPostLeft = MeshBuilder.CreatePlane(`meshPostLeft ${xPosition}`, { width: 0.5, height: 2 }, scene);
                     this.meshPostLeft.material = materialPost;
+                    this.meshPostLeft.doNotSyncBoundingInfo = true;
 
                     this.mesh.position = new Vector3(xPosition * 2, 4, 6);
                     this.mesh.rotation.y = Math.PI / 2.5;
@@ -353,6 +375,7 @@ class App {
                     this.dynamicTexture = new DynamicTexture(`DynamicTexture${xPosition}`, { width: DTWidth, height: DTHeight }, scene, false);
                     this.mat = new StandardMaterial(`mat${xPosition}`, scene);
                     this.mat.diffuseTexture = this.dynamicTexture;
+                    this.mat.freeze;
                     this.dynamicTexture.drawText(text, null, null, font, "#ffffff", "#007700", true);
                     this.mesh.material = this.mat;
 
