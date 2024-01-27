@@ -452,7 +452,7 @@ class App {
                             shuffleAnswersVelocity();
                             textblockQuestion.text = `What is the constant velocity v?`
                             state = GameState.VelocityQuestion;
-                            if (score <= 28) level = score;
+                            //if (score <= 28) level = score;
                             break;
                         case GameState.CorrectAnswerVelocity:
                             startCube();
