@@ -2,6 +2,43 @@
 <html>
 
 <head>
+  <script>
+    try {
+      function getCookie(key) {
+        const cookies = document.cookie
+          .split(";")
+          .reduce(
+            (ac, cv, i) =>
+              Object.assign(ac, { [cv.split("=")[0].trim()]: cv.split("=")[1] }),
+            {}
+          )["cookieyes-consent"];
+        const { [key]: value } = cookies
+          .split(",")
+          .reduce(
+            (obj, pair) => (
+              (pair = pair.split(":")), (obj[pair[0]] = pair[1]), obj
+            ),
+            {}
+          );
+        return value;
+      }
+      if (getCookie("consent") == "yes" && getCookie("analytics") == "yes") {
+        console.log("User consent analytics: yes");
+        window.consent = true;
+      }
+      else {
+        console.log("User consent analytics: no");
+        window.consent = false;        
+      }
+    } catch (error) {
+      //console.error(error);
+      console.log("Por favor leia nossa política de privacidade e termos de uso em https://www.fisicagames.com.br. No banner sobre cookies, você pode aceitar ou recusar a política de cookies");
+      console.log("Please read our privacy policy and terms and conditions at https://www.fisicagames.com.br. You can accept or reject the policy of cookies in the cookie banner.");
+      window.consent = false;
+      // Expected output: ReferenceError: nonExistentFunction is not defined
+      // (Note: the exact output may be browser-dependent)
+    }
+  </script>
   <meta charset="UTF-8">
   <title>Constant Velocity</title>
   <style>
@@ -12,9 +49,9 @@
       height: 100%;
       margin: 0;
       padding: 0;
-      text-align:center;
+      text-align: center;
       background-color: #C32BAD;
-      
+
     }
 
     #renderCanvas {

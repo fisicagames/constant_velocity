@@ -475,7 +475,7 @@ class App {
                             state = GameState.PositionQuestion;
                             break
                         default:
-                            console.log("State null")
+                            //console.log("State null")
                             break;
                     }
                 }
@@ -490,7 +490,7 @@ class App {
                 textblockMenuLink = advancedTexture.getControlByName("TextblockMenuLink") as TextBlock;
                 textblockMenuLink.onPointerUpObservable.add(function () {
                     //window.open("https://fisicagames.com.br")
-                    location.href = "https://fisicagames.com.br";
+                    top.location.href = "https://fisicagames.com.br";
 
                 });
 
@@ -584,6 +584,7 @@ class App {
                     for (let i in buttons) {
                         buttons[i].background = "#C32BADFF";
                     }
+                    console.log(level);
                     switch (order) {
                         case 1:
                             buttonA.textBlock.text = (xVelocity).toFixed(0).toString();
